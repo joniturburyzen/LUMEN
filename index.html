@@ -1178,14 +1178,5 @@ function startCanvas() {
 
 <!-- html2canvas lazy loaded -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
-<script>
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/lumen-frontend/service-worker.js')
-      .then(() => console.log('Lumen SW registered'))
-      .catch(e => console.log('SW error:', e));
-  });
-}
-</script>
 </body>
 </html>
