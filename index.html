@@ -902,13 +902,19 @@ function clearAudio() {
 async function submit() {
   hideErr();
   const c = MODS[curMod];
+  // For text tab: send JSON. For file/scan/audio: send FormData.
+  let isJson = false;
   let fd = new FormData();
+  let jsonBody = null;
   let ok = false;
 
   if (curTab === 'text') {
     const t = document.getElementById('ta').value.trim();
     if (!t) { showErr('Escribe o pega texto antes de continuar.'); return; }
-    fd.append('text', t); ok = true;
+    isJson = true;
+    jsonBody = { text: t };
+    if (curMod === 'revision') jsonBody.contexto = ctxSel;
+    ok = true;
   } else if (curTab === 'scan') {
     if (!scanF) { showErr('Selecciona o escanea una imagen.'); return; }
     fd.append('image', scanF); ok = true;
@@ -923,7 +929,7 @@ async function submit() {
   }
   if (!ok) return;
 
-  if (curMod === 'revision') fd.append('contexto', ctxSel);
+  if (!isJson && curMod === 'revision') fd.append('contexto', ctxSel);
 
   showLoad();
   let pi = 0;
@@ -959,7 +965,21 @@ async function submit() {
       if (curMod === 'revision') fd.append('contexto', ctxSel);
     }
 
-    const r = await fetch(API + c.endpoint, { method: 'POST', body: fd });
+    // After scan/audio processing, text is in fd as FormData → convert to JSON
+    if (!isJson && (curTab === 'scan' || curTab === 'file' || curTab === 'audio')) {
+      const extractedText = fd.get('text');
+      if (extractedText) {
+        isJson = true;
+        jsonBody = { text: extractedText };
+        if (curMod === 'revision') jsonBody.contexto = ctxSel;
+      }
+    }
+
+    const fetchOpts = isJson
+      ? { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(jsonBody) }
+      : { method: 'POST', body: fd };
+
+    const r = await fetch(API + c.endpoint, fetchOpts);
     clearInterval(pit);
     if (!r.ok) throw new Error('Error del servidor ('+r.status+')');
     const data = await r.json();
