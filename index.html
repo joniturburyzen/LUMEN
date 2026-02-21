@@ -923,7 +923,7 @@ async function submit() {
   }
   if (!ok) return;
 
-  if (curMod === 'revision') fd.append('context', ctxSel);
+  if (curMod === 'revision') fd.append('contexto', ctxSel);
 
   showLoad();
   let pi = 0;
@@ -935,16 +935,28 @@ async function submit() {
   }, 2000);
 
   try {
-    // If image/file, extract text first via /scan
+    // Step 1: if image/file → extract text via /scan
     if (curTab === 'scan' || curTab === 'file') {
       const sr = await fetch(API + '/scan', { method: 'POST', body: fd });
-      if (!sr.ok) throw new Error('Error al procesar imagen ('+sr.status+')');
+      if (!sr.ok) throw new Error('Error al procesar imagen (' + sr.status + ')');
       const sd = await sr.json();
-      const txt = sd.text || sd.extractedText || '';
-      if (!txt) throw new Error('No se pudo extraer texto.');
+      const txt = sd.text || '';
+      if (!txt) throw new Error('No se pudo extraer texto de la imagen.');
       fd = new FormData();
       fd.append('text', txt);
-      if (curMod === 'revision') fd.append('context', ctxSel);
+      if (curMod === 'revision') fd.append('contexto', ctxSel);
+    }
+
+    // Step 2: if audio → transcribe first, then send text to module endpoint
+    if (curTab === 'audio') {
+      const tr = await fetch(API + '/transcribe', { method: 'POST', body: fd });
+      if (!tr.ok) throw new Error('Error al transcribir audio (' + tr.status + ')');
+      const td = await tr.json();
+      const txt = td.text || '';
+      if (!txt) throw new Error('No se pudo transcribir el audio.');
+      fd = new FormData();
+      fd.append('text', txt);
+      if (curMod === 'revision') fd.append('contexto', ctxSel);
     }
 
     const r = await fetch(API + c.endpoint, { method: 'POST', body: fd });
@@ -967,37 +979,48 @@ function renderRes(data) {
   el.classList.remove('on');
 
   if (curMod === 'simplificar') {
-    simpResult = data;
+    // Backend returns: { nino, normal, experto, conceptos }
+    simpResult = { simple: data.nino || '', completa: data.normal || '' };
     el.innerHTML = `
       <div class="vtoggle">
         <button class="vbtn on" id="vsim" onclick="showV('simple')">Simple</button>
         <button class="vbtn" id="vcom" onclick="showV('completa')">Completa</button>
       </div>
-      ${rcard('Versión simplificada', data.simple || data.result || '', 'vtext')}
+      ${rcard('Versión simplificada', simpResult.simple, 'vtext')}
       ${savebtn()}`;
   } else if (curMod === 'burocracia') {
+    // Backend returns: { que_dicen, que_hago, y_si_no, derechos[], deberes[] }
+    const der = Array.isArray(data.derechos) ? data.derechos.join('\n') : (data.derechos||'');
+    const deb = Array.isArray(data.deberes) ? data.deberes.join('\n') : (data.deberes||'');
     el.innerHTML = `
       <div class="buro-cols">
-        <div class="bcol"><div class="bcol-t">¿Qué te piden?</div><div class="bcol-b">${esc(data.quePiden||data.col1||data.que||'')}</div></div>
-        <div class="bcol"><div class="bcol-t">¿Qué hago?</div><div class="bcol-b">${esc(data.queHago||data.col2||data.como||'')}</div></div>
-        <div class="bcol"><div class="bcol-t">¿Y si no lo hago?</div><div class="bcol-b">${esc(data.siNo||data.col3||data.consecuencias||'')}</div></div>
+        <div class="bcol"><div class="bcol-t">\u00bfQu\u00e9 te piden?</div><div class="bcol-b">${esc(data.que_dicen||'')}</div></div>
+        <div class="bcol"><div class="bcol-t">\u00bfQu\u00e9 hago?</div><div class="bcol-b">${esc(data.que_hago||'')}</div></div>
+        <div class="bcol"><div class="bcol-t">\u00bfY si no lo hago?</div><div class="bcol-b">${esc(data.y_si_no||'')}</div></div>
       </div>
       <div class="rd-grid">
-        <div class="rd-card r"><div class="rd-t">Tus derechos</div><div class="rd-b">${esc(data.derechos||data.rights||'')}</div></div>
-        <div class="rd-card d"><div class="rd-t">Tus obligaciones</div><div class="rd-b">${esc(data.obligaciones||data.duties||'')}</div></div>
+        <div class="rd-card r"><div class="rd-t">Tus derechos</div><div class="rd-b">${esc(der)}</div></div>
+        <div class="rd-card d"><div class="rd-t">Tus obligaciones</div><div class="rd-b">${esc(deb)}</div></div>
       </div>
       ${savebtn()}`;
   } else if (curMod === 'apuntes') {
+    // Backend returns: { resumen, puntos_clave[], accionables[], sin_resolver[] }
+    const pk = Array.isArray(data.puntos_clave) ? data.puntos_clave.map((p,i)=>`${i+1}. ${p}`).join('\n') : (data.puntos_clave||'');
+    const ac = Array.isArray(data.accionables) ? data.accionables.map(a=>typeof a==='object'?(a.tarea+(a.responsable?` (${a.responsable})`:'')):a).join('\n') : '';
+    const sr = Array.isArray(data.sin_resolver) ? data.sin_resolver.join('\n') : (data.sin_resolver||'');
     el.innerHTML = `
-      ${rcard('Transcripción', data.transcripcion||data.transcription||data.text||'', 'atr')}
-      ${rcard('Puntos clave', data.puntosClave||data.resumen||data.summary||'', 'apk')}
-      ${data.accionables ? rcard('Accionables', data.accionables, 'aac') : ''}
-      ${data.temasSinResolver ? rcard('Temas sin resolver', data.temasSinResolver, 'atr2') : ''}
+      ${rcard('Resumen', data.resumen||'', 'asum')}
+      ${pk ? rcard('Puntos clave', pk, 'apk') : ''}
+      ${ac ? rcard('Accionables', ac, 'aac') : ''}
+      ${sr ? rcard('Temas sin resolver', sr, 'asr') : ''}
       ${savebtn()}`;
   } else if (curMod === 'revision') {
+    // Backend returns: { problemas[], version_mejorada, tono_general, score_sentimiento }
+    const probs = Array.isArray(data.problemas) && data.problemas.length
+      ? data.problemas.map(p=>`\u2022 ${p.frase}: ${p.explicacion}`).join('\n') : '';
     el.innerHTML = `
-      ${rcard('Texto mejorado', data.revision||data.improved||data.result||'', 'rtx')}
-      ${data.comentarios ? rcard('Comentarios', data.comentarios, 'rcm') : ''}
+      ${rcard('Texto mejorado', data.version_mejorada||'', 'rtx')}
+      ${probs ? rcard('Observaciones', probs, 'robs') : ''}
       ${savebtn()}`;
   }
 
