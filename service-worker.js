@@ -1,13 +1,13 @@
 const CACHE = 'lumen-v1';
+const BASE = '/lumen-frontend';
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/icon-192.png',
-  '/icon-512.png',
+  BASE + '/',
+  BASE + '/index.html',
+  BASE + '/manifest.json',
+  BASE + '/icon-192.png',
+  BASE + '/icon-512.png',
 ];
 
-// Install: cache static assets
 self.addEventListener('install', e => {
   e.waitUntil(
     caches.open(CACHE).then(cache => cache.addAll(ASSETS))
@@ -15,7 +15,6 @@ self.addEventListener('install', e => {
   self.skipWaiting();
 });
 
-// Activate: clean old caches
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys().then(keys =>
@@ -25,12 +24,8 @@ self.addEventListener('activate', e => {
   self.clients.claim();
 });
 
-// Fetch: serve from cache, fall back to network
 self.addEventListener('fetch', e => {
-  // Don't cache API calls to the backend
-  if (e.request.url.includes('run.app')) {
-    return;
-  }
+  if (e.request.url.includes('run.app')) return;
   e.respondWith(
     caches.match(e.request).then(cached => cached || fetch(e.request))
   );
