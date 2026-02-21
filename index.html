@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Lumen</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/umd/lucide.min.js"></script>
+<script src="https://unpkg.com/lucide@0.263.1/dist/umd/lucide.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 /* ─── RESET & BASE ─────────────────────────────────────────── */
@@ -1312,10 +1312,9 @@ let selectedBuroType = 'Notificación';
 
 // ─── INIT ─────────────────────────────────────────────────────────
 window.addEventListener('load', () => {
-  lucide.createIcons();
+  if (typeof lucide !== "undefined") lucide.createIcons();
   startWordCanvas();
   startSplash();
-  // Wake up backend (non-blocking)
   fetch(BACKEND + '/').catch(() => {});
 });
 
@@ -1349,7 +1348,7 @@ function transitionToHome() {
   splash.style.opacity = 0;
   setTimeout(() => {
     showScreen('home');
-    lucide.createIcons();
+    if (typeof lucide !== "undefined") lucide.createIcons();
   }, 500);
 }
 
@@ -1371,7 +1370,7 @@ function showScreen(id) {
 function goHome() {
   resetModuleState();
   showScreen('home');
-  setTimeout(() => lucide.createIcons(), 50);
+  setTimeout(() => { if (typeof lucide !== "undefined") lucide.createIcons(); }, 50);
 }
 
 // ─── OPEN MODULE ──────────────────────────────────────────────────
@@ -1404,7 +1403,7 @@ function openModule(moduleId) {
   resetResults();
 
   showScreen('moduleScreen');
-  setTimeout(() => lucide.createIcons(), 50);
+  setTimeout(() => { if (typeof lucide !== "undefined") lucide.createIcons(); }, 50);
 }
 
 // ─── MODULE EXTRAS ────────────────────────────────────────────────
@@ -1480,7 +1479,7 @@ function renderModuleExtras(moduleId) {
     `;
   }
 
-  setTimeout(() => lucide.createIcons(), 30);
+  setTimeout(() => { if (typeof lucide !== "undefined") lucide.createIcons(); }, 30);
 }
 
 // ─── TAB SWITCHING ────────────────────────────────────────────────
@@ -1564,7 +1563,7 @@ async function toggleRecord() {
       }, 1000);
 
       // swap icon
-      setTimeout(() => lucide.createIcons(), 50);
+      setTimeout(() => { if (typeof lucide !== "undefined") lucide.createIcons(); }, 50);
     } catch (e) {
       showError('No se pudo acceder al micrófono. Comprueba los permisos.');
     }
@@ -1583,7 +1582,7 @@ function audioFileSelected(event) {
   if (!audioFile) return;
   document.getElementById('audioFileName').textContent = audioFile.name;
   document.getElementById('audioFileChip').style.display = 'inline-flex';
-  lucide.createIcons();
+  if (typeof lucide !== "undefined") lucide.createIcons();
 }
 function clearAudioFile() {
   audioFile = null;
@@ -1785,7 +1784,7 @@ function renderResult(data) {
   }
 
   area.classList.add('show');
-  setTimeout(() => lucide.createIcons(), 50);
+  setTimeout(() => { if (typeof lucide !== "undefined") lucide.createIcons(); }, 50);
   area.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
