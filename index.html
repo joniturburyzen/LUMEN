@@ -1,0 +1,2013 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Lumen</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/umd/lucide.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+/* ─── RESET & BASE ─────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --paper: #faf8f4;
+  --ink: #1a1714;
+  --ink-light: #5a5550;
+  --ink-faint: #b0a898;
+  --line: #d8d0c4;
+  --line-spacing: 32px;
+
+  --blue:   #2563eb;
+  --blue-bg: #eff6ff;
+  --green:  #16a34a;
+  --green-bg: #f0fdf4;
+  --orange: #ea580c;
+  --orange-bg: #fff7ed;
+  --violet: #7c3aed;
+  --violet-bg: #f5f3ff;
+
+  --module-color: var(--blue);
+  --module-bg: var(--blue-bg);
+
+  --radius: 16px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.06);
+  --shadow-lg: 0 12px 48px rgba(0,0,0,0.14), 0 2px 8px rgba(0,0,0,0.08);
+}
+
+html { font-size: 16px; }
+body {
+  font-family: Georgia, 'Times New Roman', serif;
+  background-color: var(--paper);
+  color: var(--ink);
+  min-height: 100dvh;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* ─── PAPER LINES BACKGROUND ───────────────────────────────── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    repeating-linear-gradient(
+      transparent,
+      transparent calc(var(--line-spacing) - 1px),
+      var(--line) calc(var(--line-spacing) - 1px),
+      var(--line) var(--line-spacing)
+    );
+  background-position: 0 48px;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.55;
+}
+
+/* Red margin line */
+body::after {
+  content: '';
+  position: fixed;
+  top: 0; left: 56px;
+  width: 2px;
+  height: 100%;
+  background: rgba(220, 100, 100, 0.25);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ─── WORD CANVAS ───────────────────────────────────────────── */
+#wordCanvas {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.07;
+}
+
+/* ─── SCREENS ───────────────────────────────────────────────── */
+.screen {
+  position: relative;
+  z-index: 10;
+  min-height: 100dvh;
+  display: none;
+  flex-direction: column;
+}
+.screen.active { display: flex; }
+
+/* ─── SPLASH ────────────────────────────────────────────────── */
+#splash {
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+}
+
+.splash-inner {
+  text-align: center;
+  padding: 2rem;
+}
+
+.splash-title {
+  font-family: Georgia, serif;
+  font-size: clamp(3.5rem, 12vw, 6rem);
+  font-weight: normal;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  line-height: 1;
+  margin-top: 2rem;
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeUp 0.7s 0.4s ease forwards;
+}
+
+.splash-subtitle {
+  font-family: Georgia, serif;
+  font-style: italic;
+  font-size: clamp(0.9rem, 3vw, 1.1rem);
+  color: var(--ink-light);
+  margin-top: 0.5rem;
+  opacity: 0;
+  animation: fadeUp 0.7s 0.7s ease forwards;
+}
+
+.splash-loading {
+  margin-top: 2.5rem;
+  font-size: 0.85rem;
+  color: var(--ink-faint);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0;
+  animation: fadeUp 0.5s 1s ease forwards;
+}
+
+.splash-phrase {
+  margin-top: 0.4rem;
+  font-style: italic;
+  font-size: 1rem;
+  color: var(--ink-light);
+  min-height: 1.5rem;
+  opacity: 0;
+  animation: fadeUp 0.5s 1.2s ease forwards;
+}
+
+.splash-dots span {
+  display: inline-block;
+  animation: dot 1.2s ease infinite;
+}
+.splash-dots span:nth-child(2) { animation-delay: 0.2s; }
+.splash-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes dot {
+  0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
+  40% { opacity: 1; transform: scale(1); }
+}
+
+/* ─── LUMEN PEN (SVG mascot) ────────────────────────────────── */
+.pen-wrapper {
+  display: inline-block;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.15));
+}
+.pen-wrapper:hover { transform: rotate(-8deg) scale(1.05); }
+.pen-wrapper:active { transform: rotate(5deg) scale(0.97); }
+
+.pen-svg {
+  width: 90px;
+  height: 90px;
+}
+
+/* Large pen on home, small in module screens */
+.pen-small .pen-svg { width: 44px; height: 44px; }
+.pen-small .pen-wrapper { cursor: pointer; }
+
+/* Pen writing animation */
+.pen-nib { transform-origin: 85px 85px; }
+.pen-animate .pen-body {
+  animation: penWiggle 0.6s ease;
+}
+@keyframes penWiggle {
+  0%   { transform: rotate(0deg); }
+  20%  { transform: rotate(-8deg) translateY(-3px); }
+  50%  { transform: rotate(4deg) translateY(1px); }
+  80%  { transform: rotate(-3deg); }
+  100% { transform: rotate(0deg); }
+}
+
+/* Pen flying animation (home → module) */
+.pen-fly {
+  animation: penFly 0.55s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+@keyframes penFly {
+  0%   { transform: scale(1) translateY(0) rotate(0deg); opacity: 1; }
+  50%  { transform: scale(0.6) translateY(-60px) rotate(15deg); opacity: 0.8; }
+  100% { transform: scale(0.4) translateY(-120px) rotate(25deg); opacity: 0; }
+}
+
+/* ─── SPEECH BUBBLE ─────────────────────────────────────────── */
+.bubble-container {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 8px;
+}
+
+.speech-bubble {
+  position: absolute;
+  bottom: calc(100% + 12px);
+  left: 50%;
+  transform: translateX(-50%) scale(0.9);
+  background: var(--ink);
+  color: var(--paper);
+  padding: 0.5rem 0.9rem;
+  border-radius: 12px;
+  font-size: 0.82rem;
+  font-style: italic;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  z-index: 100;
+}
+.speech-bubble::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: var(--ink);
+}
+.speech-bubble.show {
+  opacity: 1;
+  transform: translateX(-50%) scale(1);
+}
+
+/* Small pen bubble positioned differently */
+.pen-small .speech-bubble {
+  bottom: auto;
+  top: calc(100% + 10px);
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+.pen-small .speech-bubble::after {
+  top: auto;
+  bottom: 100%;
+  border-top-color: transparent;
+  border-bottom-color: var(--ink);
+}
+
+/* ─── HOME SCREEN ───────────────────────────────────────────── */
+#home {
+  padding: 0 0 2rem 0;
+}
+
+.home-header {
+  padding: 2.5rem 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.home-logo {
+  font-family: Georgia, serif;
+  font-size: clamp(2.2rem, 8vw, 3.2rem);
+  font-weight: normal;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  margin-top: 0.75rem;
+}
+
+.home-tagline {
+  font-style: italic;
+  color: var(--ink-light);
+  font-size: 0.95rem;
+  margin-top: 0.2rem;
+}
+
+.home-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  padding: 1.5rem 1.2rem;
+  max-width: 600px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* ─── MODULE CARDS ──────────────────────────────────────────── */
+.mod-card {
+  background: white;
+  border-radius: var(--radius);
+  padding: 1.4rem 1.2rem 1.4rem;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border: 1.5px solid transparent;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+.mod-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  background: var(--mod-color);
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+.mod-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--mod-color);
+}
+.mod-card:active { transform: translateY(-1px) scale(0.98); }
+
+.mod-card[data-module="traduceme"]  { --mod-color: var(--blue); }
+.mod-card[data-module="burocracia"] { --mod-color: var(--green); }
+.mod-card[data-module="apuntes"]    { --mod-color: var(--orange); }
+.mod-card[data-module="revision"]   { --mod-color: var(--violet); }
+
+.mod-icon {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--mod-color) 12%, transparent);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--mod-color);
+  margin-bottom: 0.8rem;
+}
+
+.mod-name {
+  font-family: Georgia, serif;
+  font-size: 1.05rem;
+  font-weight: normal;
+  color: var(--ink);
+  line-height: 1.2;
+}
+
+.mod-desc {
+  font-size: 0.78rem;
+  color: var(--ink-light);
+  margin-top: 0.3rem;
+  line-height: 1.4;
+  font-style: italic;
+}
+
+/* ─── MODULE SCREEN ─────────────────────────────────────────── */
+.module-screen {
+  padding-bottom: 2rem;
+}
+
+.module-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.2rem 1.2rem 1rem;
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  background: rgba(250, 248, 244, 0.92);
+  backdrop-filter: blur(8px);
+  z-index: 50;
+}
+
+.btn-back {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--ink-light);
+  padding: 4px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  transition: color 0.15s, background 0.15s;
+  flex-shrink: 0;
+}
+.btn-back:hover { color: var(--ink); background: var(--line); }
+
+.module-title-area { flex: 1; }
+.module-title {
+  font-family: Georgia, serif;
+  font-size: 1.3rem;
+  font-weight: normal;
+  color: var(--ink);
+}
+.module-subtitle {
+  font-size: 0.75rem;
+  color: var(--ink-faint);
+  font-style: italic;
+}
+
+/* Module color accent on title */
+.module-title span { color: var(--module-color); }
+
+.module-content {
+  padding: 1.2rem;
+  max-width: 680px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* ─── INPUT TABS (Escanear / Archivo / Texto / Audio) ──────── */
+.input-tabs {
+  display: flex;
+  background: white;
+  border-radius: 12px;
+  padding: 4px;
+  gap: 2px;
+  box-shadow: var(--shadow);
+  margin-bottom: 1.2rem;
+}
+
+.input-tab {
+  flex: 1;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.55rem 0.3rem;
+  border-radius: 9px;
+  font-family: Georgia, serif;
+  font-size: 0.72rem;
+  color: var(--ink-light);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  transition: background 0.2s, color 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.input-tab svg { opacity: 0.7; }
+.input-tab.active {
+  background: var(--module-color);
+  color: white;
+}
+.input-tab.active svg { opacity: 1; }
+.input-tab:hover:not(.active) { background: var(--line); color: var(--ink); }
+
+/* ─── INPUT PANELS ──────────────────────────────────────────── */
+.input-panel { display: none; }
+.input-panel.active { display: block; }
+
+/* Camera / File drop zone */
+.drop-zone {
+  border: 2px dashed var(--line);
+  border-radius: var(--radius);
+  padding: 2.5rem 1rem;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  background: white;
+}
+.drop-zone:hover, .drop-zone.drag-over {
+  border-color: var(--module-color);
+  background: var(--module-bg);
+}
+.drop-zone input { display: none; }
+.drop-zone-icon {
+  color: var(--ink-faint);
+  margin-bottom: 0.5rem;
+  display: flex;
+  justify-content: center;
+}
+.drop-zone p { font-size: 0.85rem; color: var(--ink-light); font-style: italic; }
+.drop-zone small { font-size: 0.75rem; color: var(--ink-faint); }
+
+/* Text area */
+.lumen-textarea {
+  width: 100%;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1rem;
+  font-family: Georgia, serif;
+  font-size: 0.95rem;
+  color: var(--ink);
+  background: white;
+  resize: vertical;
+  min-height: 140px;
+  outline: none;
+  transition: border-color 0.2s;
+  line-height: var(--line-spacing);
+}
+.lumen-textarea:focus { border-color: var(--module-color); }
+
+/* Audio recorder */
+.audio-recorder {
+  background: white;
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+.record-btn {
+  width: 72px; height: 72px;
+  border-radius: 50%;
+  border: none;
+  background: var(--module-color);
+  color: white;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 20px color-mix(in srgb, var(--module-color) 35%, transparent);
+  margin-bottom: 0.75rem;
+}
+.record-btn:hover { transform: scale(1.06); }
+.record-btn.recording {
+  background: #dc2626;
+  animation: pulse 1.2s ease infinite;
+  box-shadow: 0 4px 20px rgba(220,38,38,0.4);
+}
+@keyframes pulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 4px 20px rgba(220,38,38,0.4); }
+  50% { transform: scale(1.07); box-shadow: 0 6px 30px rgba(220,38,38,0.6); }
+}
+.record-label { font-size: 0.82rem; color: var(--ink-light); font-style: italic; }
+.record-timer { font-family: Georgia, serif; font-size: 1.2rem; color: var(--ink); margin: 0.4rem 0; display: none; }
+.audio-preview { margin-top: 1rem; display: none; }
+.audio-preview audio { width: 100%; }
+
+/* File preview chip */
+.file-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--module-bg);
+  border: 1px solid color-mix(in srgb, var(--module-color) 30%, transparent);
+  color: var(--module-color);
+  border-radius: 20px;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.8rem;
+  margin-top: 0.75rem;
+}
+.file-chip button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--module-color);
+  display: flex;
+  padding: 0;
+}
+
+/* ─── EXTRA FIELDS PER MODULE ───────────────────────────────── */
+.field-group { margin-bottom: 1rem; }
+.field-label {
+  font-size: 0.78rem;
+  color: var(--ink-light);
+  margin-bottom: 0.35rem;
+  display: block;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Language fields for Tradúceme */
+.lang-row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+.lang-select {
+  flex: 1;
+  border: 1.5px solid var(--line);
+  border-radius: 10px;
+  padding: 0.6rem 0.75rem;
+  font-family: Georgia, serif;
+  font-size: 0.9rem;
+  background: white;
+  color: var(--ink);
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+.lang-select:focus { border-color: var(--module-color); }
+.lang-swap {
+  background: none;
+  border: 1.5px solid var(--line);
+  border-radius: 50%;
+  width: 36px; height: 36px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--ink-light);
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+.lang-swap:hover { background: var(--line); color: var(--ink); }
+
+/* Context selector for Revisión */
+.context-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.context-btn {
+  border: 1.5px solid var(--line);
+  background: white;
+  border-radius: 10px;
+  padding: 0.6rem 0.5rem;
+  cursor: pointer;
+  font-family: Georgia, serif;
+  font-size: 0.82rem;
+  color: var(--ink-light);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  justify-content: center;
+  transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.context-btn.active {
+  border-color: var(--module-color);
+  background: var(--module-bg);
+  color: var(--module-color);
+}
+
+/* Context selector for Burocracia */
+.buro-type-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.buro-btn {
+  border: 1.5px solid var(--line);
+  background: white;
+  border-radius: 10px;
+  padding: 0.55rem 0.4rem;
+  cursor: pointer;
+  font-family: Georgia, serif;
+  font-size: 0.78rem;
+  color: var(--ink-light);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  justify-content: center;
+  transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.buro-btn.active {
+  border-color: var(--module-color);
+  background: var(--module-bg);
+  color: var(--module-color);
+}
+
+/* ─── SUBMIT BUTTON ─────────────────────────────────────────── */
+.btn-submit {
+  width: 100%;
+  background: var(--module-color);
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  padding: 1rem;
+  font-family: Georgia, serif;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1.2rem;
+  transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--module-color) 30%, transparent);
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-submit:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--module-color) 40%, transparent);
+}
+.btn-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+/* ─── LOADING STATE ─────────────────────────────────────────── */
+.loading-overlay {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.5rem;
+  text-align: center;
+}
+.loading-overlay.show { display: flex; }
+
+.loading-pen {
+  animation: loadingBounce 0.7s ease infinite alternate;
+  filter: drop-shadow(0 4px 10px rgba(0,0,0,0.15));
+}
+@keyframes loadingBounce {
+  from { transform: translateY(0) rotate(-5deg); }
+  to   { transform: translateY(-16px) rotate(5deg); }
+}
+
+.loading-phrase {
+  font-style: italic;
+  font-size: 1rem;
+  color: var(--ink-light);
+  margin-top: 1.5rem;
+  min-height: 1.5rem;
+  transition: opacity 0.4s ease;
+}
+
+.loading-dots {
+  display: flex;
+  gap: 6px;
+  margin-top: 0.75rem;
+  justify-content: center;
+}
+.loading-dots span {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--module-color);
+  animation: dot 1.2s ease infinite;
+}
+.loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+.loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+/* ─── RESULT CARDS ──────────────────────────────────────────── */
+.result-area {
+  display: none;
+  margin-top: 1.5rem;
+}
+.result-area.show { display: block; }
+
+.result-card {
+  background: white;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.result-card-header {
+  padding: 0.9rem 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--line);
+}
+
+.result-card-title {
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-light);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.result-card-title .dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--module-color);
+}
+
+.result-actions {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.btn-icon {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--ink-faint);
+  padding: 5px;
+  border-radius: 8px;
+  display: flex;
+  transition: color 0.15s, background 0.15s;
+}
+.btn-icon:hover { color: var(--ink); background: var(--line); }
+
+.result-card-body {
+  padding: 1.2rem;
+  font-size: 0.95rem;
+  line-height: 1.75;
+  color: var(--ink);
+  white-space: pre-wrap;
+}
+
+/* ─── TRADÚCEME TOGGLE ──────────────────────────────────────── */
+.version-toggle {
+  display: flex;
+  background: var(--line);
+  border-radius: 10px;
+  padding: 3px;
+  gap: 2px;
+  margin-bottom: 1rem;
+}
+.version-btn {
+  flex: 1;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.55rem;
+  border-radius: 8px;
+  font-family: Georgia, serif;
+  font-size: 0.85rem;
+  color: var(--ink-light);
+  transition: all 0.2s;
+}
+.version-btn.active {
+  background: white;
+  color: var(--module-color);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+
+/* ─── BUROCRACIA 3-COLUMN RESULT ────────────────────────────── */
+.buro-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1px;
+  background: var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+.buro-col {
+  background: white;
+  padding: 1rem;
+}
+.buro-col-title {
+  font-size: 0.7rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--module-color);
+  font-weight: normal;
+  margin-bottom: 0.6rem;
+}
+.buro-col-body {
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: var(--ink);
+  white-space: pre-wrap;
+}
+
+/* Rights & Duties below columns */
+.rights-duties {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+.rights-card, .duties-card {
+  background: white;
+  border-radius: var(--radius);
+  padding: 1rem;
+  box-shadow: var(--shadow);
+}
+.rights-card { border-top: 3px solid var(--green); }
+.duties-card { border-top: 3px solid var(--orange); }
+.rights-duties-title {
+  font-size: 0.7rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+.rights-card .rights-duties-title { color: var(--green); }
+.duties-card .rights-duties-title { color: var(--orange); }
+.rights-duties-body {
+  font-size: 0.8rem;
+  line-height: 1.6;
+  color: var(--ink);
+  white-space: pre-wrap;
+}
+
+/* ─── APUNTES RESULT ────────────────────────────────────────── */
+.apuntes-section { margin-bottom: 1rem; }
+.apuntes-section-title {
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-light);
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* ─── SAVE BUTTON ───────────────────────────────────────────── */
+.btn-save {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: 1.5px solid var(--line);
+  border-radius: 10px;
+  padding: 0.55rem 1rem;
+  font-family: Georgia, serif;
+  font-size: 0.82rem;
+  color: var(--ink-light);
+  cursor: pointer;
+  transition: all 0.2s;
+  margin: 1rem auto 0;
+  display: block;
+  width: fit-content;
+}
+.btn-save:hover { border-color: var(--module-color); color: var(--module-color); }
+
+/* ─── ERROR CARD ────────────────────────────────────────────── */
+.error-card {
+  background: #fef2f2;
+  border: 1.5px solid #fca5a5;
+  border-radius: var(--radius);
+  padding: 1rem 1.2rem;
+  color: #991b1b;
+  font-size: 0.88rem;
+  display: none;
+  margin-top: 1rem;
+}
+.error-card.show { display: block; }
+
+/* ─── ANIMATIONS ────────────────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.fade-in { animation: fadeIn 0.35s ease forwards; }
+.slide-up { animation: fadeUp 0.4s ease forwards; }
+
+/* ─── RESPONSIVE ────────────────────────────────────────────── */
+@media (max-width: 380px) {
+  .home-grid { gap: 0.75rem; padding: 1rem 0.9rem; }
+  .mod-card { padding: 1.1rem 0.9rem; }
+  .buro-cols { grid-template-columns: 1fr; }
+  .rights-duties { grid-template-columns: 1fr; }
+}
+
+@media (min-width: 600px) {
+  .buro-cols { grid-template-columns: 1fr 1fr 1fr; }
+}
+
+/* ─── SCROLLBAR ─────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- WORD CANVAS -->
+<canvas id="wordCanvas"></canvas>
+
+<!-- ═══ SPLASH SCREEN ═══════════════════════════════════════════ -->
+<div id="splash" class="screen active">
+  <div class="splash-inner">
+    <div class="bubble-container" id="splashBubbleContainer">
+      <div class="speech-bubble" id="splashBubble"></div>
+      <div class="pen-wrapper" id="splashPen" onclick="penClick('splash')">
+        <svg class="pen-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <g class="pen-body">
+            <!-- Clip -->
+            <rect x="43" y="8" width="14" height="28" rx="4" fill="#1a1714" opacity="0.15"/>
+            <rect x="46" y="6" width="8" height="4" rx="2" fill="#1a1714" opacity="0.3"/>
+            <!-- Body -->
+            <rect x="38" y="18" width="24" height="50" rx="6" fill="#2563eb"/>
+            <rect x="38" y="18" width="12" height="50" rx="6" fill="rgba(255,255,255,0.15)"/>
+            <!-- Grip -->
+            <rect x="38" y="58" width="24" height="12" rx="3" fill="#1d4ed8"/>
+            <!-- Nib -->
+            <polygon class="pen-nib" points="50,95 42,68 58,68" fill="#94a3b8"/>
+            <polygon points="50,95 46,68 50,72" fill="#64748b"/>
+            <!-- Gold band -->
+            <rect x="38" y="66" width="24" height="4" rx="1" fill="#fbbf24"/>
+            <!-- Shine -->
+            <rect x="42" y="22" width="4" height="20" rx="2" fill="white" opacity="0.25"/>
+          </g>
+        </svg>
+      </div>
+    </div>
+    <div class="splash-title">Lumen</div>
+    <div class="splash-subtitle">tu asistente de texto</div>
+    <div class="splash-loading">Preparando <span class="splash-dots"><span>.</span><span>.</span><span>.</span></span></div>
+    <div class="splash-phrase" id="splashPhrase"></div>
+  </div>
+</div>
+
+<!-- ═══ HOME SCREEN ═══════════════════════════════════════════════ -->
+<div id="home" class="screen">
+  <div class="home-header">
+    <div class="bubble-container" id="homeBubbleContainer">
+      <div class="speech-bubble" id="homeBubble"></div>
+      <div class="pen-wrapper" id="homePen" onclick="penClick('home')">
+        <svg class="pen-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <g class="pen-body">
+            <rect x="43" y="8" width="14" height="28" rx="4" fill="#1a1714" opacity="0.15"/>
+            <rect x="46" y="6" width="8" height="4" rx="2" fill="#1a1714" opacity="0.3"/>
+            <rect x="38" y="18" width="24" height="50" rx="6" fill="#2563eb"/>
+            <rect x="38" y="18" width="12" height="50" rx="6" fill="rgba(255,255,255,0.15)"/>
+            <rect x="38" y="58" width="24" height="12" rx="3" fill="#1d4ed8"/>
+            <polygon class="pen-nib" points="50,95 42,68 58,68" fill="#94a3b8"/>
+            <polygon points="50,95 46,68 50,72" fill="#64748b"/>
+            <rect x="38" y="66" width="24" height="4" rx="1" fill="#fbbf24"/>
+            <rect x="42" y="22" width="4" height="20" rx="2" fill="white" opacity="0.25"/>
+          </g>
+        </svg>
+      </div>
+    </div>
+    <div class="home-logo">Lumen</div>
+    <div class="home-tagline">¿Qué quieres entender hoy?</div>
+  </div>
+
+  <div class="home-grid">
+    <!-- Tradúceme -->
+    <div class="mod-card" data-module="traduceme" onclick="openModule('traduceme')">
+      <div class="mod-icon">
+        <i data-lucide="languages" width="18" height="18"></i>
+      </div>
+      <div class="mod-name">Tradúceme</div>
+      <div class="mod-desc">Simple y completa a la vez</div>
+    </div>
+    <!-- Burocracia -->
+    <div class="mod-card" data-module="burocracia" onclick="openModule('burocracia')">
+      <div class="mod-icon">
+        <i data-lucide="landmark" width="18" height="18"></i>
+      </div>
+      <div class="mod-name">Burocracia</div>
+      <div class="mod-desc">Entiende qué te piden</div>
+    </div>
+    <!-- Apuntes -->
+    <div class="mod-card" data-module="apuntes" onclick="openModule('apuntes')">
+      <div class="mod-icon">
+        <i data-lucide="mic" width="18" height="18"></i>
+      </div>
+      <div class="mod-name">Apuntes</div>
+      <div class="mod-desc">Graba, transcribe, resume</div>
+    </div>
+    <!-- Revisión -->
+    <div class="mod-card" data-module="revision" onclick="openModule('revision')">
+      <div class="mod-icon">
+        <i data-lucide="mail-check" width="18" height="18"></i>
+      </div>
+      <div class="mod-name">Revisión</div>
+      <div class="mod-desc">Mejora lo que escribes</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODULE SCREEN TEMPLATE ═══════════════════════════════════ -->
+<div id="moduleScreen" class="screen module-screen">
+  <div class="module-header">
+    <button class="btn-back" onclick="goHome()">
+      <i data-lucide="arrow-left" width="20" height="20"></i>
+    </button>
+    <div class="module-title-area">
+      <div class="module-title" id="moduleTitle">Módulo</div>
+      <div class="module-subtitle" id="moduleSubtitle"></div>
+    </div>
+    <!-- Small pen in corner -->
+    <div class="pen-small bubble-container" id="moduleBubbleContainer">
+      <div class="speech-bubble" id="moduleBubble"></div>
+      <div class="pen-wrapper" onclick="penClick('module')">
+        <svg class="pen-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <g class="pen-body">
+            <rect x="43" y="8" width="14" height="28" rx="4" fill="#1a1714" opacity="0.15"/>
+            <rect x="46" y="6" width="8" height="4" rx="2" fill="#1a1714" opacity="0.3"/>
+            <rect x="38" y="18" width="24" height="50" rx="6" id="penBodyColor" fill="#2563eb"/>
+            <rect x="38" y="18" width="12" height="50" rx="6" fill="rgba(255,255,255,0.15)"/>
+            <rect x="38" y="58" width="24" height="12" rx="3" id="penBodyDark" fill="#1d4ed8"/>
+            <polygon class="pen-nib" points="50,95 42,68 58,68" fill="#94a3b8"/>
+            <polygon points="50,95 46,68 50,72" fill="#64748b"/>
+            <rect x="38" y="66" width="24" height="4" rx="1" fill="#fbbf24"/>
+            <rect x="42" y="22" width="4" height="20" rx="2" fill="white" opacity="0.25"/>
+          </g>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="module-content">
+
+    <!-- INPUT TABS -->
+    <div class="input-tabs" id="inputTabs">
+      <button class="input-tab active" data-tab="scan" onclick="switchTab('scan')">
+        <i data-lucide="camera" width="16" height="16"></i>
+        Escanear
+      </button>
+      <button class="input-tab" data-tab="file" onclick="switchTab('file')">
+        <i data-lucide="paperclip" width="16" height="16"></i>
+        Archivo
+      </button>
+      <button class="input-tab" data-tab="text" onclick="switchTab('text')">
+        <i data-lucide="type" width="16" height="16"></i>
+        Texto
+      </button>
+      <button class="input-tab" data-tab="audio" onclick="switchTab('audio')">
+        <i data-lucide="mic" width="16" height="16"></i>
+        Audio
+      </button>
+    </div>
+
+    <!-- SCAN PANEL -->
+    <div class="input-panel active" id="panel-scan">
+      <div class="drop-zone" id="scanZone" onclick="document.getElementById('scanInput').click()" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event,'scan')">
+        <input type="file" id="scanInput" accept="image/*" capture="environment" onchange="fileSelected(event,'scan')">
+        <div class="drop-zone-icon"><i data-lucide="scan-line" width="32" height="32"></i></div>
+        <p>Toca para abrir la cámara</p>
+        <small>o arrastra una imagen aquí</small>
+      </div>
+      <div id="scanChip" class="file-chip" style="display:none">
+        <i data-lucide="image" width="14" height="14"></i>
+        <span id="scanFileName">imagen.jpg</span>
+        <button onclick="clearFile('scan')"><i data-lucide="x" width="12" height="12"></i></button>
+      </div>
+    </div>
+
+    <!-- FILE PANEL -->
+    <div class="input-panel" id="panel-file">
+      <div class="drop-zone" id="fileZone" onclick="document.getElementById('fileInput').click()" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event,'file')">
+        <input type="file" id="fileInput" accept=".pdf,.doc,.docx,.txt,image/*" onchange="fileSelected(event,'file')">
+        <div class="drop-zone-icon"><i data-lucide="upload-cloud" width="32" height="32"></i></div>
+        <p>Arrastra o toca para subir</p>
+        <small>PDF, imagen, Word, texto</small>
+      </div>
+      <div id="fileChip" class="file-chip" style="display:none">
+        <i data-lucide="file-text" width="14" height="14"></i>
+        <span id="fileFileName">documento.pdf</span>
+        <button onclick="clearFile('file')"><i data-lucide="x" width="12" height="12"></i></button>
+      </div>
+    </div>
+
+    <!-- TEXT PANEL -->
+    <div class="input-panel" id="panel-text">
+      <textarea class="lumen-textarea" id="mainTextarea" placeholder="Escribe o pega tu texto aquí…" rows="6"></textarea>
+    </div>
+
+    <!-- AUDIO PANEL -->
+    <div class="input-panel" id="panel-audio">
+      <div class="audio-recorder">
+        <button class="record-btn" id="recordBtn" onclick="toggleRecord()">
+          <i data-lucide="mic" width="28" height="28" id="recordIcon"></i>
+        </button>
+        <div class="record-timer" id="recordTimer">0:00</div>
+        <div class="record-label" id="recordLabel">Toca para grabar</div>
+        <div class="audio-preview" id="audioPreview">
+          <audio controls id="audioPlayer"></audio>
+        </div>
+      </div>
+      <div class="field-group" style="margin-top:1rem;">
+        <div class="drop-zone" onclick="document.getElementById('audioFileInput').click()" style="padding:1.5rem">
+          <input type="file" id="audioFileInput" accept="audio/*,video/*" onchange="audioFileSelected(event)">
+          <div class="drop-zone-icon"><i data-lucide="file-audio" width="24" height="24"></i></div>
+          <p style="font-size:0.8rem">O sube un archivo de audio</p>
+        </div>
+        <div id="audioFileChip" class="file-chip" style="display:none">
+          <i data-lucide="music" width="14" height="14"></i>
+          <span id="audioFileName">audio.mp3</span>
+          <button onclick="clearAudioFile()"><i data-lucide="x" width="12" height="12"></i></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODULE-SPECIFIC EXTRAS (injected dynamically) -->
+    <div id="moduleExtras"></div>
+
+    <!-- SUBMIT -->
+    <button class="btn-submit" id="submitBtn" onclick="submitModule()">
+      <i data-lucide="wand-2" width="18" height="18"></i>
+      <span id="submitLabel">Analizar</span>
+    </button>
+
+    <!-- ERROR -->
+    <div class="error-card" id="errorCard"></div>
+
+    <!-- LOADING -->
+    <div class="loading-overlay" id="loadingOverlay">
+      <div class="loading-pen">
+        <svg width="70" height="70" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <g class="pen-body">
+            <rect x="43" y="8" width="14" height="28" rx="4" fill="#1a1714" opacity="0.15"/>
+            <rect x="46" y="6" width="8" height="4" rx="2" fill="#1a1714" opacity="0.3"/>
+            <rect x="38" y="18" width="24" height="50" rx="6" id="loadingPenColor" fill="#2563eb"/>
+            <rect x="38" y="18" width="12" height="50" rx="6" fill="rgba(255,255,255,0.15)"/>
+            <rect x="38" y="58" width="24" height="12" rx="3" fill="rgba(0,0,0,0.15)"/>
+            <polygon points="50,95 42,68 58,68" fill="#94a3b8"/>
+            <polygon points="50,95 46,68 50,72" fill="#64748b"/>
+            <rect x="38" y="66" width="24" height="4" rx="1" fill="#fbbf24"/>
+            <rect x="42" y="22" width="4" height="20" rx="2" fill="white" opacity="0.25"/>
+          </g>
+        </svg>
+      </div>
+      <div class="loading-phrase" id="loadingPhrase">Leyendo el texto…</div>
+      <div class="loading-dots">
+        <span></span><span></span><span></span>
+      </div>
+    </div>
+
+    <!-- RESULTS -->
+    <div class="result-area" id="resultArea"></div>
+
+  </div>
+</div>
+
+<!-- ═══ JAVASCRIPT ══════════════════════════════════════════════ -->
+<script>
+const BACKEND = 'https://lumen-backend-674628598121.europe-west1.run.app';
+
+// ─── MODULE CONFIG ───────────────────────────────────────────────
+const MODULES = {
+  traduceme: {
+    title: 'Tradúceme',
+    subtitle: 'Traducción simple y completa',
+    color: '#2563eb',
+    colorDark: '#1d4ed8',
+    colorBg: '#eff6ff',
+    cssVar: 'var(--blue)',
+    submitLabel: 'Traducir',
+    loadingPhrases: [
+      'Buscando las palabras exactas…',
+      'Comparando matices…',
+      'Eligiendo la versión más clara…',
+      'Analizando contexto…',
+    ],
+    endpoint: '/traduceme',
+  },
+  burocracia: {
+    title: 'Burocracia',
+    subtitle: 'Entiende documentos oficiales',
+    color: '#16a34a',
+    colorDark: '#15803d',
+    colorBg: '#f0fdf4',
+    cssVar: 'var(--green)',
+    submitLabel: 'Analizar',
+    loadingPhrases: [
+      'Descifrando el lenguaje burocrático…',
+      'Identificando tus derechos…',
+      'Ordenando la información…',
+      'Traduciendo del funcionariés…',
+    ],
+    endpoint: '/burocracia',
+  },
+  apuntes: {
+    title: 'Apuntes',
+    subtitle: 'Transcribe y resume',
+    color: '#ea580c',
+    colorDark: '#c2410c',
+    colorBg: '#fff7ed',
+    cssVar: 'var(--orange)',
+    submitLabel: 'Transcribir y resumir',
+    loadingPhrases: [
+      'Escuchando con atención…',
+      'Convirtiendo voz en texto…',
+      'Identificando los puntos clave…',
+      'Organizando tus notas…',
+    ],
+    endpoint: '/apuntes',
+  },
+  revision: {
+    title: 'Revisión',
+    subtitle: 'Mejora lo que escribes',
+    color: '#7c3aed',
+    colorDark: '#6d28d9',
+    colorBg: '#f5f3ff',
+    cssVar: 'var(--violet)',
+    submitLabel: 'Revisar y mejorar',
+    loadingPhrases: [
+      'Leyendo entre líneas…',
+      'Puliendo el tono…',
+      'Buscando la versión perfecta…',
+      'Ajustando el registro…',
+    ],
+    endpoint: '/revision',
+  },
+};
+
+// ─── PEN PHRASES ─────────────────────────────────────────────────
+const PEN_PHRASES = [
+  '¡Aquí estoy!',
+  'A tu servicio.',
+  '¿Necesitas algo?',
+  '¡Vamos a ello!',
+  'Soy todo oídos.',
+  '¿En qué te ayudo?',
+  'Listo para escribir.',
+  '¡Tú diriges!',
+];
+
+const SPLASH_PHRASES = [
+  'Cargando las palabras…',
+  'Preparando la tinta…',
+  'Afilando la punta…',
+  'Casi listo…',
+];
+
+// ─── STATE ────────────────────────────────────────────────────────
+let currentModule = null;
+let currentTab = 'scan';
+let scanFile = null;
+let docFile = null;
+let audioBlob = null;
+let audioFile = null;
+let mediaRecorder = null;
+let recordChunks = [];
+let recordInterval = null;
+let recordSeconds = 0;
+let isRecording = false;
+let traducemeResult = null; // { simple, completa }
+let currentVersionShown = 'simple';
+let selectedContext = 'Trabajo';
+let selectedBuroType = 'Notificación';
+
+// ─── INIT ─────────────────────────────────────────────────────────
+window.addEventListener('load', () => {
+  lucide.createIcons();
+  startWordCanvas();
+  startSplash();
+});
+
+// ─── SPLASH ───────────────────────────────────────────────────────
+function startSplash() {
+  let idx = 0;
+  const el = document.getElementById('splashPhrase');
+  el.textContent = SPLASH_PHRASES[0];
+
+  const interval = setInterval(() => {
+    idx++;
+    if (idx >= SPLASH_PHRASES.length) {
+      clearInterval(interval);
+    } else {
+      el.style.opacity = 0;
+      setTimeout(() => {
+        el.textContent = SPLASH_PHRASES[idx];
+        el.style.opacity = 1;
+      }, 300);
+    }
+  }, 900);
+
+  setTimeout(() => {
+    transitionToHome();
+  }, 3200);
+}
+
+function transitionToHome() {
+  const splash = document.getElementById('splash');
+  splash.style.transition = 'opacity 0.5s ease';
+  splash.style.opacity = 0;
+  setTimeout(() => {
+    showScreen('home');
+    lucide.createIcons();
+  }, 500);
+}
+
+// ─── SCREENS ──────────────────────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => {
+    s.classList.remove('active');
+    s.style.display = '';
+  });
+  const el = document.getElementById(id);
+  el.classList.add('active');
+  el.style.opacity = 0;
+  el.style.transition = 'opacity 0.35s ease';
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => { el.style.opacity = 1; });
+  });
+}
+
+function goHome() {
+  resetModuleState();
+  showScreen('home');
+  setTimeout(() => lucide.createIcons(), 50);
+}
+
+// ─── OPEN MODULE ──────────────────────────────────────────────────
+function openModule(moduleId) {
+  currentModule = moduleId;
+  const cfg = MODULES[moduleId];
+
+  // Apply module color to CSS vars
+  const root = document.documentElement;
+  root.style.setProperty('--module-color', cfg.color);
+  root.style.setProperty('--module-bg', cfg.colorBg);
+
+  // Update pen body color
+  document.getElementById('penBodyColor').setAttribute('fill', cfg.color);
+  document.getElementById('penBodyDark').setAttribute('fill', cfg.colorDark);
+  document.getElementById('loadingPenColor').setAttribute('fill', cfg.color);
+
+  // Header
+  document.getElementById('moduleTitle').innerHTML = cfg.title;
+  document.getElementById('moduleSubtitle').textContent = cfg.subtitle;
+  document.getElementById('submitLabel').textContent = cfg.submitLabel;
+
+  // Reset tabs to scan
+  switchTab('scan');
+
+  // Inject module-specific extras
+  renderModuleExtras(moduleId);
+
+  // Reset results
+  resetResults();
+
+  showScreen('moduleScreen');
+  setTimeout(() => lucide.createIcons(), 50);
+}
+
+// ─── MODULE EXTRAS ────────────────────────────────────────────────
+function renderModuleExtras(moduleId) {
+  const container = document.getElementById('moduleExtras');
+  container.innerHTML = '';
+
+  if (moduleId === 'traduceme') {
+    container.innerHTML = `
+      <div class="lang-row">
+        <select class="lang-select" id="fromLang">
+          <option value="auto">Detectar idioma</option>
+          <option value="es">Español</option>
+          <option value="en">Inglés</option>
+          <option value="fr">Francés</option>
+          <option value="de">Alemán</option>
+          <option value="it">Italiano</option>
+          <option value="pt">Portugués</option>
+          <option value="zh">Chino</option>
+          <option value="ar">Árabe</option>
+          <option value="ru">Ruso</option>
+          <option value="ja">Japonés</option>
+        </select>
+        <button class="lang-swap" onclick="swapLangs()" title="Intercambiar idiomas">
+          <i data-lucide="arrow-left-right" width="16" height="16"></i>
+        </button>
+        <select class="lang-select" id="toLang">
+          <option value="es">Español</option>
+          <option value="en" selected>Inglés</option>
+          <option value="fr">Francés</option>
+          <option value="de">Alemán</option>
+          <option value="it">Italiano</option>
+          <option value="pt">Portugués</option>
+          <option value="zh">Chino</option>
+          <option value="ar">Árabe</option>
+          <option value="ru">Ruso</option>
+          <option value="ja">Japonés</option>
+        </select>
+      </div>
+    `;
+  }
+
+  if (moduleId === 'burocracia') {
+    container.innerHTML = `
+      <div class="field-group">
+        <label class="field-label">Tipo de documento</label>
+        <div class="buro-type-grid">
+          ${['Notificación','Multa','Contrato','Formulario','Resolución','Otro'].map(t => `
+            <button class="buro-btn${t === selectedBuroType ? ' active' : ''}" onclick="selectBuroType('${t}')">${t}</button>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  if (moduleId === 'revision') {
+    container.innerHTML = `
+      <div class="field-group">
+        <label class="field-label">Contexto</label>
+        <div class="context-grid">
+          ${[
+            {label:'Trabajo', icon:'briefcase'},
+            {label:'Pareja', icon:'heart'},
+            {label:'Familia', icon:'home'},
+            {label:'Legal', icon:'scale'},
+          ].map(c => `
+            <button class="context-btn${c.label === selectedContext ? ' active' : ''}" onclick="selectContext('${c.label}')">
+              <i data-lucide="${c.icon}" width="14" height="14"></i> ${c.label}
+            </button>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  setTimeout(() => lucide.createIcons(), 30);
+}
+
+// ─── TAB SWITCHING ────────────────────────────────────────────────
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.input-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.tab === tab);
+  });
+  document.querySelectorAll('.input-panel').forEach(p => {
+    p.classList.toggle('active', p.id === 'panel-' + tab);
+  });
+}
+
+// ─── FILE HANDLING ────────────────────────────────────────────────
+function fileSelected(event, type) {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (type === 'scan') {
+    scanFile = file;
+    document.getElementById('scanFileName').textContent = file.name;
+    document.getElementById('scanChip').style.display = 'inline-flex';
+  } else {
+    docFile = file;
+    document.getElementById('fileFileName').textContent = file.name;
+    document.getElementById('fileChip').style.display = 'inline-flex';
+  }
+}
+
+function clearFile(type) {
+  if (type === 'scan') {
+    scanFile = null;
+    document.getElementById('scanInput').value = '';
+    document.getElementById('scanChip').style.display = 'none';
+  } else {
+    docFile = null;
+    document.getElementById('fileInput').value = '';
+    document.getElementById('fileChip').style.display = 'none';
+  }
+}
+
+function dragOver(e) {
+  e.preventDefault();
+  e.currentTarget.classList.add('drag-over');
+}
+function dragLeave(e) { e.currentTarget.classList.remove('drag-over'); }
+function dropFile(e, type) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (!file) return;
+  const fakeEvent = { target: { files: [file] } };
+  fileSelected(fakeEvent, type);
+}
+
+// ─── AUDIO RECORDING ──────────────────────────────────────────────
+async function toggleRecord() {
+  if (!isRecording) {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorder = new MediaRecorder(stream);
+      recordChunks = [];
+      mediaRecorder.ondataavailable = e => recordChunks.push(e.data);
+      mediaRecorder.onstop = () => {
+        audioBlob = new Blob(recordChunks, { type: 'audio/webm' });
+        const url = URL.createObjectURL(audioBlob);
+        document.getElementById('audioPlayer').src = url;
+        document.getElementById('audioPreview').style.display = 'block';
+        stream.getTracks().forEach(t => t.stop());
+      };
+      mediaRecorder.start();
+      isRecording = true;
+      recordSeconds = 0;
+      document.getElementById('recordBtn').classList.add('recording');
+      document.getElementById('recordLabel').textContent = 'Grabando… toca para detener';
+      document.getElementById('recordTimer').style.display = 'block';
+      recordInterval = setInterval(() => {
+        recordSeconds++;
+        const m = Math.floor(recordSeconds / 60);
+        const s = recordSeconds % 60;
+        document.getElementById('recordTimer').textContent = `${m}:${s.toString().padStart(2,'0')}`;
+      }, 1000);
+
+      // swap icon
+      setTimeout(() => lucide.createIcons(), 50);
+    } catch (e) {
+      showError('No se pudo acceder al micrófono. Comprueba los permisos.');
+    }
+  } else {
+    mediaRecorder.stop();
+    isRecording = false;
+    clearInterval(recordInterval);
+    document.getElementById('recordBtn').classList.remove('recording');
+    document.getElementById('recordLabel').textContent = 'Toca para grabar de nuevo';
+    document.getElementById('recordTimer').style.display = 'none';
+  }
+}
+
+function audioFileSelected(event) {
+  audioFile = event.target.files[0];
+  if (!audioFile) return;
+  document.getElementById('audioFileName').textContent = audioFile.name;
+  document.getElementById('audioFileChip').style.display = 'inline-flex';
+  lucide.createIcons();
+}
+function clearAudioFile() {
+  audioFile = null;
+  document.getElementById('audioFileInput').value = '';
+  document.getElementById('audioFileChip').style.display = 'none';
+}
+
+// ─── CONTEXT / BUROCRACIA SELECTORS ──────────────────────────────
+function selectContext(ctx) {
+  selectedContext = ctx;
+  document.querySelectorAll('.context-btn').forEach(b => {
+    b.classList.toggle('active', b.textContent.trim() === ctx);
+  });
+}
+
+function selectBuroType(t) {
+  selectedBuroType = t;
+  document.querySelectorAll('.buro-btn').forEach(b => {
+    b.classList.toggle('active', b.textContent.trim() === t);
+  });
+}
+
+function swapLangs() {
+  const from = document.getElementById('fromLang');
+  const to = document.getElementById('toLang');
+  if (from.value === 'auto') return;
+  const tmp = from.value;
+  from.value = to.value;
+  to.value = tmp;
+}
+
+// ─── SUBMIT ───────────────────────────────────────────────────────
+async function submitModule() {
+  hideError();
+  const cfg = MODULES[currentModule];
+
+  // Gather input
+  let formData = new FormData();
+  let hasInput = false;
+
+  if (currentTab === 'text') {
+    const text = document.getElementById('mainTextarea').value.trim();
+    if (!text) { showError('Por favor escribe o pega texto antes de continuar.'); return; }
+    formData.append('text', text);
+    hasInput = true;
+  } else if (currentTab === 'scan') {
+    if (!scanFile) { showError('Por favor selecciona o escanea una imagen.'); return; }
+    formData.append('image', scanFile);
+    hasInput = true;
+  } else if (currentTab === 'file') {
+    if (!docFile) { showError('Por favor selecciona un archivo.'); return; }
+    formData.append('file', docFile);
+    hasInput = true;
+  } else if (currentTab === 'audio') {
+    const blob = audioFile || audioBlob;
+    if (!blob) { showError('Por favor graba o sube un audio.'); return; }
+    formData.append('audio', blob instanceof File ? blob : new File([blob], 'recording.webm', { type: 'audio/webm' }));
+    hasInput = true;
+  }
+
+  if (!hasInput) return;
+
+  // Module-specific params
+  if (currentModule === 'traduceme') {
+    formData.append('from', document.getElementById('fromLang')?.value || 'auto');
+    formData.append('to', document.getElementById('toLang')?.value || 'es');
+  }
+  if (currentModule === 'revision') {
+    formData.append('context', selectedContext);
+  }
+  if (currentModule === 'burocracia') {
+    formData.append('docType', selectedBuroType);
+  }
+
+  showLoading();
+
+  // Cycle loading phrases
+  let pi = 0;
+  const pInterval = setInterval(() => {
+    pi = (pi + 1) % cfg.loadingPhrases.length;
+    const el = document.getElementById('loadingPhrase');
+    el.style.opacity = 0;
+    setTimeout(() => {
+      el.textContent = cfg.loadingPhrases[pi];
+      el.style.opacity = 1;
+    }, 300);
+  }, 2200);
+
+  try {
+    // If scan or file tab, first call /scan to extract text, then the module endpoint
+    let endpoint = cfg.endpoint;
+    if (currentTab === 'scan' || currentTab === 'file') {
+      // Call /scan first
+      const scanResp = await fetch(BACKEND + '/scan', { method: 'POST', body: formData });
+      if (!scanResp.ok) throw new Error(`Error al escanear: ${scanResp.status}`);
+      const scanData = await scanResp.json();
+      const extractedText = scanData.text || scanData.extractedText || '';
+      if (!extractedText) throw new Error('No se pudo extraer texto de la imagen/archivo.');
+      // Now build new formData with text
+      formData = new FormData();
+      formData.append('text', extractedText);
+      if (currentModule === 'traduceme') {
+        formData.append('from', document.getElementById('fromLang')?.value || 'auto');
+        formData.append('to', document.getElementById('toLang')?.value || 'es');
+      }
+      if (currentModule === 'revision') formData.append('context', selectedContext);
+      if (currentModule === 'burocracia') formData.append('docType', selectedBuroType);
+    }
+
+    const resp = await fetch(BACKEND + endpoint, { method: 'POST', body: formData });
+    clearInterval(pInterval);
+    if (!resp.ok) throw new Error(`Error del servidor: ${resp.status}`);
+    const data = await resp.json();
+    hideLoading();
+    renderResult(data);
+  } catch (err) {
+    clearInterval(pInterval);
+    hideLoading();
+    showError('Algo ha ido mal: ' + err.message);
+  }
+}
+
+// ─── RENDER RESULTS ───────────────────────────────────────────────
+function renderResult(data) {
+  const area = document.getElementById('resultArea');
+  area.innerHTML = '';
+  area.classList.remove('show');
+
+  if (currentModule === 'traduceme') {
+    traducemeResult = data;
+    currentVersionShown = 'simple';
+    area.innerHTML = `
+      <div class="version-toggle">
+        <button class="version-btn active" id="vbSimple" onclick="showVersion('simple')">Simple</button>
+        <button class="version-btn" id="vbCompleta" onclick="showVersion('completa')">Completa</button>
+      </div>
+      ${resultCard('Traducción', data.simple || data.result || '', 'traduccion')}
+      ${saveBtnHTML()}
+    `;
+  } else if (currentModule === 'burocracia') {
+    area.innerHTML = `
+      <div class="result-card fade-in">
+        <div class="result-card-header">
+          <div class="result-card-title"><div class="dot"></div>Análisis del documento</div>
+          <div class="result-actions">
+            <button class="btn-icon" onclick="copyText('buro-resumen')" title="Copiar"><i data-lucide="copy" width="15" height="15"></i></button>
+          </div>
+        </div>
+        <div class="buro-cols">
+          <div class="buro-col">
+            <div class="buro-col-title">Qué te piden</div>
+            <div class="buro-col-body" id="buro-col1">${escHtml(data.quePiden || data.col1 || '')}</div>
+          </div>
+          <div class="buro-col">
+            <div class="buro-col-title">Cómo responder</div>
+            <div class="buro-col-body" id="buro-col2">${escHtml(data.comoResponder || data.col2 || '')}</div>
+          </div>
+          <div class="buro-col">
+            <div class="buro-col-title">Plazos y consecuencias</div>
+            <div class="buro-col-body" id="buro-col3">${escHtml(data.plazos || data.col3 || '')}</div>
+          </div>
+        </div>
+        <div id="buro-resumen" style="display:none">${escHtml(data.quePiden || '')} ${escHtml(data.comoResponder || '')} ${escHtml(data.plazos || '')}</div>
+      </div>
+      <div class="rights-duties fade-in">
+        <div class="rights-card">
+          <div class="rights-duties-title">Tus derechos</div>
+          <div class="rights-duties-body">${escHtml(data.derechos || data.rights || '')}</div>
+        </div>
+        <div class="duties-card">
+          <div class="rights-duties-title">Tus obligaciones</div>
+          <div class="rights-duties-body">${escHtml(data.obligaciones || data.duties || '')}</div>
+        </div>
+      </div>
+      ${saveBtnHTML()}
+    `;
+  } else if (currentModule === 'apuntes') {
+    area.innerHTML = `
+      ${resultCard('Transcripción', data.transcripcion || data.transcription || data.text || '', 'transcripcion-text')}
+      <div class="result-card fade-in" style="margin-top:0.75rem">
+        <div class="result-card-header">
+          <div class="result-card-title"><div class="dot"></div>Resumen</div>
+          <div class="result-actions">
+            <button class="btn-icon" onclick="copyText('apuntes-resumen')" title="Copiar"><i data-lucide="copy" width="15" height="15"></i></button>
+          </div>
+        </div>
+        <div class="result-card-body">
+          ${renderApuntesResumen(data)}
+        </div>
+      </div>
+      ${saveBtnHTML()}
+    `;
+  } else if (currentModule === 'revision') {
+    area.innerHTML = `
+      ${resultCard('Texto mejorado', data.revision || data.improved || data.result || '', 'revision-text')}
+      ${data.comentarios ? resultCard('Comentarios', data.comentarios, 'revision-comments') : ''}
+      ${saveBtnHTML()}
+    `;
+  }
+
+  area.classList.add('show');
+  setTimeout(() => lucide.createIcons(), 50);
+  area.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function resultCard(title, text, id) {
+  return `
+    <div class="result-card fade-in">
+      <div class="result-card-header">
+        <div class="result-card-title"><div class="dot"></div>${title}</div>
+        <div class="result-actions">
+          <button class="btn-icon" onclick="copyText('${id}')" title="Copiar"><i data-lucide="copy" width="15" height="15"></i></button>
+        </div>
+      </div>
+      <div class="result-card-body" id="${id}">${escHtml(text)}</div>
+    </div>
+  `;
+}
+
+function saveBtnHTML() {
+  return `<button class="btn-save" onclick="saveCapture()"><i data-lucide="download" width="15" height="15"></i> Guardar imagen</button>`;
+}
+
+function renderApuntesResumen(data) {
+  const r = data.resumen || data.summary || '';
+  if (typeof r === 'string') return escHtml(r);
+  // If structured
+  let html = '';
+  if (r.puntosClave || data.puntosClave) {
+    html += `<div class="apuntes-section-title"><i data-lucide="check-circle" width="14" height="14"></i> Puntos clave</div><div style="margin-bottom:0.75rem">${escHtml(r.puntosClave || data.puntosClave)}</div>`;
+  }
+  if (r.accionables || data.accionables) {
+    html += `<div class="apuntes-section-title"><i data-lucide="zap" width="14" height="14"></i> Accionables</div><div style="margin-bottom:0.75rem">${escHtml(r.accionables || data.accionables)}</div>`;
+  }
+  if (r.temasSinResolver || data.temasSinResolver) {
+    html += `<div class="apuntes-section-title"><i data-lucide="help-circle" width="14" height="14"></i> Temas sin resolver</div><div>${escHtml(r.temasSinResolver || data.temasSinResolver)}</div>`;
+  }
+  return html || escHtml(String(r));
+}
+
+function showVersion(v) {
+  currentVersionShown = v;
+  const el = document.getElementById('traduccion');
+  if (!el || !traducemeResult) return;
+  el.textContent = v === 'simple'
+    ? (traducemeResult.simple || traducemeResult.result || '')
+    : (traducemeResult.completa || traducemeResult.complete || traducemeResult.result || '');
+  document.getElementById('vbSimple').classList.toggle('active', v === 'simple');
+  document.getElementById('vbCompleta').classList.toggle('active', v === 'completa');
+}
+
+// ─── UTILS ────────────────────────────────────────────────────────
+function escHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/\n/g,'<br>');
+}
+
+function copyText(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  navigator.clipboard.writeText(el.innerText || el.textContent).then(() => {
+    // brief visual feedback
+    const orig = el.style.background;
+    el.style.background = 'rgba(37,99,235,0.06)';
+    el.style.transition = 'background 0.3s';
+    setTimeout(() => { el.style.background = orig; }, 600);
+  }).catch(() => {});
+}
+
+async function saveCapture() {
+  try {
+    const el = document.getElementById('resultArea');
+    const canvas = await html2canvas(el, { backgroundColor: '#faf8f4', scale: 2 });
+    const a = document.createElement('a');
+    a.download = `lumen-${currentModule}-${Date.now()}.png`;
+    a.href = canvas.toDataURL('image/png');
+    a.click();
+  } catch(e) {
+    showError('No se pudo guardar la imagen.');
+  }
+}
+
+// ─── LOADING / ERROR ──────────────────────────────────────────────
+function showLoading() {
+  document.getElementById('submitBtn').disabled = true;
+  const cfg = MODULES[currentModule];
+  document.getElementById('loadingPhrase').textContent = cfg.loadingPhrases[0];
+  document.getElementById('loadingOverlay').classList.add('show');
+  document.getElementById('resultArea').classList.remove('show');
+}
+function hideLoading() {
+  document.getElementById('submitBtn').disabled = false;
+  document.getElementById('loadingOverlay').classList.remove('show');
+}
+function showError(msg) {
+  const el = document.getElementById('errorCard');
+  el.textContent = msg;
+  el.classList.add('show');
+  el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+function hideError() {
+  document.getElementById('errorCard').classList.remove('show');
+}
+function resetResults() {
+  hideError();
+  hideLoading();
+  document.getElementById('resultArea').innerHTML = '';
+  document.getElementById('resultArea').classList.remove('show');
+}
+function resetModuleState() {
+  scanFile = null;
+  docFile = null;
+  audioBlob = null;
+  audioFile = null;
+  if (isRecording) { try { mediaRecorder.stop(); } catch(e){} isRecording = false; }
+  clearInterval(recordInterval);
+  traducemeResult = null;
+}
+
+// ─── PEN CLICK & BUBBLES ──────────────────────────────────────────
+function penClick(where) {
+  const phrase = PEN_PHRASES[Math.floor(Math.random() * PEN_PHRASES.length)];
+  const bubbleId = where === 'splash' ? 'splashBubble'
+    : where === 'home' ? 'homeBubble' : 'moduleBubble';
+  const penId = where === 'splash' ? 'splashPen'
+    : where === 'home' ? 'homePen' : null;
+
+  showBubble(bubbleId, phrase);
+
+  // Wiggle animation
+  const penEl = penId ? document.getElementById(penId) : document.querySelector('#moduleBubbleContainer .pen-wrapper');
+  if (penEl) {
+    penEl.querySelector('.pen-body')?.classList.add('pen-animate');
+    setTimeout(() => penEl.querySelector('.pen-body')?.classList.remove('pen-animate'), 700);
+  }
+
+  if (navigator.vibrate) navigator.vibrate(30);
+}
+
+function showBubble(id, text) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = text;
+  el.classList.add('show');
+  clearTimeout(el._hideTimeout);
+  el._hideTimeout = setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+// ─── WORD CANVAS ──────────────────────────────────────────────────
+const WORD_POOLS = {
+  default: ['texto','palabra','frase','carta','nota','ideas','lumen','escribe','lee','piensa','entiende','claridad','lengua','voz','boli'],
+  traduceme: ['hello','bonjour','hola','ciao','hallo','こんにちは','مرحبا','привет','你好','hi','olá','ahoj'],
+  burocracia: ['decreto','artículo','expediente','resolución','notificación','plazo','derecho','deber','trámite','registro','código'],
+  apuntes: ['reunión','idea','tarea','acción','resumen','punto','clave','notas','audio','voz','transcripción'],
+  revision: ['tono','registro','estilo','claridad','forma','mensaje','carta','email','mejorar','pulir'],
+};
+
+let words = [];
+const MAX_WORDS = 18;
+
+function startWordCanvas() {
+  const canvas = document.getElementById('wordCanvas');
+  const ctx = canvas.getContext('2d');
+
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  function getPool() {
+    if (!currentModule) return WORD_POOLS.default;
+    return WORD_POOLS[currentModule] || WORD_POOLS.default;
+  }
+
+  function spawnWord() {
+    const pool = getPool();
+    const w = pool[Math.floor(Math.random() * pool.length)];
+    words.push({
+      text: w,
+      x: Math.random() * (canvas.width - 80) + 40,
+      y: Math.random() * (canvas.height - 40) + 20,
+      size: 11 + Math.random() * 10,
+      alpha: 0,
+      phase: 'in',
+      life: 0,
+      maxLife: 180 + Math.random() * 120,
+    });
+  }
+
+  setInterval(spawnWord, 800);
+
+  function tick() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    words = words.filter(w => !(w.phase === 'dead'));
+
+    for (const w of words) {
+      w.life++;
+      if (w.phase === 'in') {
+        w.alpha = Math.min(1, w.life / 30);
+        if (w.alpha >= 1) w.phase = 'hold';
+      } else if (w.phase === 'hold') {
+        if (w.life >= w.maxLife) w.phase = 'out';
+      } else if (w.phase === 'out') {
+        w.alpha = Math.max(0, w.alpha - 0.025);
+        if (w.alpha <= 0) w.phase = 'dead';
+      }
+
+      ctx.save();
+      ctx.globalAlpha = w.alpha;
+      ctx.font = `italic ${w.size}px Georgia, serif`;
+      ctx.fillStyle = '#1a1714';
+      ctx.fillText(w.text, w.x, w.y);
+      ctx.restore();
+    }
+
+    if (words.length < MAX_WORDS) spawnWord();
+    requestAnimationFrame(tick);
+  }
+  tick();
+}
+</script>
+</body>
+</html>
