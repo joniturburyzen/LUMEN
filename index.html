@@ -2,2013 +2,1131 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Lumen</title>
-<script src="https://unpkg.com/lucide@0.263.1/dist/umd/lucide.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
-/* ─── RESET & BASE ─────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
   --paper: #faf8f4;
   --ink: #1a1714;
-  --ink-light: #5a5550;
+  --ink-light: #6b6560;
   --ink-faint: #b0a898;
-  --line: #d8d0c4;
+  --line: #e0d8cc;
   --line-spacing: 32px;
-
-  --blue:   #2563eb;
-  --blue-bg: #eff6ff;
-  --green:  #16a34a;
-  --green-bg: #f0fdf4;
-  --orange: #ea580c;
-  --orange-bg: #fff7ed;
-  --violet: #7c3aed;
-  --violet-bg: #f5f3ff;
-
-  --module-color: var(--blue);
-  --module-bg: var(--blue-bg);
-
-  --radius: 16px;
-  --shadow: 0 4px 24px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.06);
-  --shadow-lg: 0 12px 48px rgba(0,0,0,0.14), 0 2px 8px rgba(0,0,0,0.08);
+  --radius: 14px;
+  --shadow: 0 2px 16px rgba(0,0,0,0.07), 0 1px 3px rgba(0,0,0,0.05);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
+  --blue:   #2563eb; --blue-bg: #eff6ff;
+  --green:  #16a34a; --green-bg: #f0fdf4;
+  --orange: #ea580c; --orange-bg: #fff7ed;
+  --violet: #7c3aed; --violet-bg: #f5f3ff;
+  --mod: var(--blue);
+  --mod-bg: var(--blue-bg);
 }
 
-html { font-size: 16px; }
+html, body { height: 100%; }
 body {
   font-family: Georgia, 'Times New Roman', serif;
-  background-color: var(--paper);
+  background: var(--paper);
   color: var(--ink);
-  min-height: 100dvh;
-  overflow-x: hidden;
-  position: relative;
+  overflow: hidden;
 }
 
-/* ─── PAPER LINES BACKGROUND ───────────────────────────────── */
+/* Paper lines */
 body::before {
   content: '';
-  position: fixed;
-  inset: 0;
-  background-image:
-    repeating-linear-gradient(
-      transparent,
-      transparent calc(var(--line-spacing) - 1px),
-      var(--line) calc(var(--line-spacing) - 1px),
-      var(--line) var(--line-spacing)
-    );
-  background-position: 0 48px;
-  pointer-events: none;
-  z-index: 0;
-  opacity: 0.55;
+  position: fixed; inset: 0;
+  background-image: repeating-linear-gradient(
+    transparent, transparent calc(var(--line-spacing) - 1px),
+    var(--line) calc(var(--line-spacing) - 1px), var(--line) var(--line-spacing)
+  );
+  background-position: 0 44px;
+  pointer-events: none; z-index: 0; opacity: 0.5;
 }
-
-/* Red margin line */
+/* Red margin */
 body::after {
   content: '';
-  position: fixed;
-  top: 0; left: 56px;
-  width: 2px;
-  height: 100%;
-  background: rgba(220, 100, 100, 0.25);
-  pointer-events: none;
-  z-index: 0;
+  position: fixed; top: 0; left: 52px;
+  width: 1.5px; height: 100%;
+  background: rgba(220,80,80,0.2);
+  pointer-events: none; z-index: 0;
 }
 
-/* ─── WORD CANVAS ───────────────────────────────────────────── */
-#wordCanvas {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 1;
-  opacity: 0.07;
+/* ── WORD CANVAS ── */
+#wc {
+  position: fixed; inset: 0;
+  pointer-events: none; z-index: 1;
 }
 
-/* ─── SCREENS ───────────────────────────────────────────────── */
+/* ── SCREENS ── */
 .screen {
-  position: relative;
+  position: fixed; inset: 0;
   z-index: 10;
-  min-height: 100dvh;
-  display: none;
-  flex-direction: column;
-}
-.screen.active { display: flex; }
-
-/* ─── SPLASH ────────────────────────────────────────────────── */
-#splash {
-  align-items: center;
-  justify-content: center;
+  display: flex; flex-direction: column;
   background: transparent;
+  overflow-y: auto;
+  transition: opacity 0.3s ease, transform 0.3s ease;
 }
-
-.splash-inner {
-  text-align: center;
-  padding: 2rem;
-}
-
-.splash-title {
-  font-family: Georgia, serif;
-  font-size: clamp(3.5rem, 12vw, 6rem);
-  font-weight: normal;
-  letter-spacing: -0.02em;
-  color: var(--ink);
-  line-height: 1;
-  margin-top: 2rem;
+.screen.hidden {
   opacity: 0;
-  transform: translateY(20px);
-  animation: fadeUp 0.7s 0.4s ease forwards;
+  pointer-events: none;
+  transform: translateX(24px);
+}
+.screen.slide-back { transform: translateX(-24px); }
+
+/* ── PEN SVG ── */
+.pen { display: inline-block; cursor: pointer; filter: drop-shadow(0 3px 8px rgba(0,0,0,0.18)); }
+.pen:active { transform: scale(0.93) rotate(-5deg); }
+.pen svg { display: block; }
+.pen-lg svg { width: 80px; height: 80px; }
+.pen-sm svg { width: 40px; height: 40px; }
+
+/* ── BUBBLE ── */
+.bubble-wrap { position: relative; display: inline-block; }
+.bubble {
+  position: absolute;
+  bottom: calc(100% + 10px); left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: var(--ink); color: var(--paper);
+  padding: 6px 12px; border-radius: 10px;
+  font-size: 0.78rem; font-style: italic;
+  white-space: nowrap; pointer-events: none;
+  opacity: 0; transition: opacity 0.2s, transform 0.2s;
+  z-index: 200;
+}
+.bubble::after {
+  content: ''; position: absolute;
+  top: 100%; left: 50%; transform: translateX(-50%);
+  border: 5px solid transparent; border-top-color: var(--ink);
+}
+.bubble.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+/* small pen bubble goes down */
+.pen-sm-wrap .bubble {
+  bottom: auto; top: calc(100% + 10px);
+}
+.pen-sm-wrap .bubble::after {
+  top: auto; bottom: 100%;
+  border-top-color: transparent; border-bottom-color: var(--ink);
 }
 
-.splash-subtitle {
-  font-family: Georgia, serif;
-  font-style: italic;
-  font-size: clamp(0.9rem, 3vw, 1.1rem);
-  color: var(--ink-light);
-  margin-top: 0.5rem;
-  opacity: 0;
-  animation: fadeUp 0.7s 0.7s ease forwards;
+/* ══════════════════════════════
+   SPLASH
+══════════════════════════════ */
+#splash {
+  align-items: center; justify-content: center;
+  text-align: center; padding: 2rem;
 }
-
-.splash-loading {
-  margin-top: 2.5rem;
-  font-size: 0.85rem;
-  color: var(--ink-faint);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  opacity: 0;
-  animation: fadeUp 0.5s 1s ease forwards;
+.splash-logo {
+  font-size: clamp(3rem, 12vw, 5.5rem);
+  font-weight: normal; letter-spacing: -0.02em;
+  margin-top: 1.2rem;
+  animation: fadeUp 0.6s 0.3s ease both;
 }
-
+.splash-sub {
+  font-style: italic; color: var(--ink-light);
+  font-size: 1rem; margin-top: 0.3rem;
+  animation: fadeUp 0.6s 0.6s ease both;
+}
 .splash-phrase {
-  margin-top: 0.4rem;
-  font-style: italic;
-  font-size: 1rem;
-  color: var(--ink-light);
-  min-height: 1.5rem;
-  opacity: 0;
-  animation: fadeUp 0.5s 1.2s ease forwards;
+  font-style: italic; color: var(--ink-light);
+  font-size: 0.9rem; margin-top: 2rem;
+  min-height: 1.4rem;
+  animation: fadeUp 0.5s 1s ease both;
+  transition: opacity 0.3s;
 }
-
-.splash-dots span {
+.dots span {
   display: inline-block;
   animation: dot 1.2s ease infinite;
 }
-.splash-dots span:nth-child(2) { animation-delay: 0.2s; }
-.splash-dots span:nth-child(3) { animation-delay: 0.4s; }
-
+.dots span:nth-child(2) { animation-delay: 0.2s; }
+.dots span:nth-child(3) { animation-delay: 0.4s; }
 @keyframes dot {
-  0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
+  0%,80%,100% { opacity: 0.2; transform: scale(0.7); }
   40% { opacity: 1; transform: scale(1); }
 }
 
-/* ─── LUMEN PEN (SVG mascot) ────────────────────────────────── */
-.pen-wrapper {
-  display: inline-block;
-  cursor: pointer;
-  transition: transform 0.3s ease;
-  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.15));
+/* ══════════════════════════════
+   HOME
+══════════════════════════════ */
+#home { padding: 0 0 3rem; }
+.home-head {
+  padding: 2.5rem 1.5rem 0.5rem;
+  display: flex; flex-direction: column;
+  align-items: center; text-align: center;
 }
-.pen-wrapper:hover { transform: rotate(-8deg) scale(1.05); }
-.pen-wrapper:active { transform: rotate(5deg) scale(0.97); }
-
-.pen-svg {
-  width: 90px;
-  height: 90px;
-}
-
-/* Large pen on home, small in module screens */
-.pen-small .pen-svg { width: 44px; height: 44px; }
-.pen-small .pen-wrapper { cursor: pointer; }
-
-/* Pen writing animation */
-.pen-nib { transform-origin: 85px 85px; }
-.pen-animate .pen-body {
-  animation: penWiggle 0.6s ease;
-}
-@keyframes penWiggle {
-  0%   { transform: rotate(0deg); }
-  20%  { transform: rotate(-8deg) translateY(-3px); }
-  50%  { transform: rotate(4deg) translateY(1px); }
-  80%  { transform: rotate(-3deg); }
-  100% { transform: rotate(0deg); }
-}
-
-/* Pen flying animation (home → module) */
-.pen-fly {
-  animation: penFly 0.55s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-@keyframes penFly {
-  0%   { transform: scale(1) translateY(0) rotate(0deg); opacity: 1; }
-  50%  { transform: scale(0.6) translateY(-60px) rotate(15deg); opacity: 0.8; }
-  100% { transform: scale(0.4) translateY(-120px) rotate(25deg); opacity: 0; }
-}
-
-/* ─── SPEECH BUBBLE ─────────────────────────────────────────── */
-.bubble-container {
-  position: relative;
-  display: inline-block;
-  margin-bottom: 8px;
-}
-
-.speech-bubble {
-  position: absolute;
-  bottom: calc(100% + 12px);
-  left: 50%;
-  transform: translateX(-50%) scale(0.9);
-  background: var(--ink);
-  color: var(--paper);
-  padding: 0.5rem 0.9rem;
-  border-radius: 12px;
-  font-size: 0.82rem;
-  font-style: italic;
-  white-space: nowrap;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.25s ease, transform 0.25s ease;
-  z-index: 100;
-}
-.speech-bubble::after {
-  content: '';
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  border: 6px solid transparent;
-  border-top-color: var(--ink);
-}
-.speech-bubble.show {
-  opacity: 1;
-  transform: translateX(-50%) scale(1);
-}
-
-/* Small pen bubble positioned differently */
-.pen-small .speech-bubble {
-  bottom: auto;
-  top: calc(100% + 10px);
-  font-size: 0.75rem;
-  white-space: nowrap;
-}
-.pen-small .speech-bubble::after {
-  top: auto;
-  bottom: 100%;
-  border-top-color: transparent;
-  border-bottom-color: var(--ink);
-}
-
-/* ─── HOME SCREEN ───────────────────────────────────────────── */
-#home {
-  padding: 0 0 2rem 0;
-}
-
-.home-header {
-  padding: 2.5rem 1.5rem 1rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
 .home-logo {
-  font-family: Georgia, serif;
-  font-size: clamp(2.2rem, 8vw, 3.2rem);
-  font-weight: normal;
-  letter-spacing: -0.01em;
-  color: var(--ink);
-  margin-top: 0.75rem;
+  font-size: clamp(2rem, 7vw, 3rem);
+  font-weight: normal; margin-top: 0.6rem;
 }
-
-.home-tagline {
-  font-style: italic;
-  color: var(--ink-light);
-  font-size: 0.95rem;
-  margin-top: 0.2rem;
+.home-tag {
+  font-style: italic; color: var(--ink-light);
+  font-size: 0.9rem; margin-top: 0.2rem;
 }
-
-.home-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  padding: 1.5rem 1.2rem;
-  max-width: 600px;
-  margin: 0 auto;
-  width: 100%;
+.grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 0.9rem; padding: 1.5rem 1.1rem;
+  max-width: 560px; margin: 0 auto; width: 100%;
 }
-
-/* ─── MODULE CARDS ──────────────────────────────────────────── */
-.mod-card {
-  background: white;
-  border-radius: var(--radius);
-  padding: 1.4rem 1.2rem 1.4rem;
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
+.card {
+  background: white; border-radius: var(--radius);
+  padding: 1.3rem 1.1rem;
+  cursor: pointer; position: relative;
   box-shadow: var(--shadow);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
   border: 1.5px solid transparent;
+  transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s;
   -webkit-tap-highlight-color: transparent;
-  user-select: none;
+  overflow: hidden;
 }
-.mod-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 4px;
-  background: var(--mod-color);
-  border-radius: var(--radius) var(--radius) 0 0;
+.card::before {
+  content: ''; position: absolute;
+  top: 0; left: 0; right: 0; height: 3px;
+  background: var(--c);
 }
-.mod-card:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-lg);
-  border-color: var(--mod-color);
-}
-.mod-card:active { transform: translateY(-1px) scale(0.98); }
-
-.mod-card[data-module="traduceme"]  { --mod-color: var(--blue); }
-.mod-card[data-module="burocracia"] { --mod-color: var(--green); }
-.mod-card[data-module="apuntes"]    { --mod-color: var(--orange); }
-.mod-card[data-module="revision"]   { --mod-color: var(--violet); }
-
-.mod-icon {
-  width: 36px; height: 36px;
-  border-radius: 10px;
-  background: color-mix(in srgb, var(--mod-color) 12%, transparent);
+.card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); border-color: var(--c); }
+.card:active { transform: scale(0.97); }
+.card[data-m="simplificar"] { --c: var(--blue); }
+.card[data-m="burocracia"]  { --c: var(--green); }
+.card[data-m="apuntes"]     { --c: var(--orange); }
+.card[data-m="revision"]    { --c: var(--violet); }
+.card-icon {
+  width: 34px; height: 34px; border-radius: 9px;
+  background: color-mix(in srgb, var(--c) 13%, transparent);
+  color: var(--c);
   display: flex; align-items: center; justify-content: center;
-  color: var(--mod-color);
-  margin-bottom: 0.8rem;
+  margin-bottom: 0.7rem; font-size: 1.1rem;
 }
+.card-name { font-size: 1rem; font-weight: normal; color: var(--ink); }
+.card-desc { font-size: 0.75rem; color: var(--ink-light); margin-top: 0.25rem; font-style: italic; }
 
-.mod-name {
-  font-family: Georgia, serif;
-  font-size: 1.05rem;
-  font-weight: normal;
-  color: var(--ink);
-  line-height: 1.2;
-}
-
-.mod-desc {
-  font-size: 0.78rem;
-  color: var(--ink-light);
-  margin-top: 0.3rem;
-  line-height: 1.4;
-  font-style: italic;
-}
-
-/* ─── MODULE SCREEN ─────────────────────────────────────────── */
-.module-screen {
-  padding-bottom: 2rem;
-}
-
-.module-header {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 1.2rem 1.2rem 1rem;
+/* ══════════════════════════════
+   MODULE SCREEN
+══════════════════════════════ */
+#mod { padding-bottom: 3rem; }
+.mod-head {
+  display: flex; align-items: center; gap: 0.6rem;
+  padding: 1rem 1rem 0.8rem;
+  position: sticky; top: 0;
+  background: rgba(250,248,244,0.93);
+  backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--line);
-  position: sticky;
-  top: 0;
-  background: rgba(250, 248, 244, 0.92);
-  backdrop-filter: blur(8px);
   z-index: 50;
 }
-
 .btn-back {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--ink-light);
-  padding: 4px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
+  background: none; border: none; cursor: pointer;
+  color: var(--ink-light); padding: 6px;
+  border-radius: 8px; display: flex;
   transition: color 0.15s, background 0.15s;
-  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+  flex-shrink: 0; font-size: 1.3rem; line-height: 1;
 }
 .btn-back:hover { color: var(--ink); background: var(--line); }
-
-.module-title-area { flex: 1; }
-.module-title {
-  font-family: Georgia, serif;
-  font-size: 1.3rem;
-  font-weight: normal;
+.mod-title-wrap { flex: 1; }
+.mod-title {
+  font-size: 1.2rem; font-weight: normal;
   color: var(--ink);
 }
-.module-subtitle {
-  font-size: 0.75rem;
-  color: var(--ink-faint);
-  font-style: italic;
+.mod-sub { font-size: 0.72rem; color: var(--ink-faint); font-style: italic; }
+.pen-sm-wrap { position: relative; }
+.mod-body { padding: 1.1rem; max-width: 640px; margin: 0 auto; width: 100%; }
+
+/* ── Input tabs ── */
+.tabs {
+  display: flex; background: white;
+  border-radius: 12px; padding: 3px; gap: 2px;
+  box-shadow: var(--shadow); margin-bottom: 1.1rem;
 }
-
-/* Module color accent on title */
-.module-title span { color: var(--module-color); }
-
-.module-content {
-  padding: 1.2rem;
-  max-width: 680px;
-  margin: 0 auto;
-  width: 100%;
-}
-
-/* ─── INPUT TABS (Escanear / Archivo / Texto / Audio) ──────── */
-.input-tabs {
-  display: flex;
-  background: white;
-  border-radius: 12px;
-  padding: 4px;
-  gap: 2px;
-  box-shadow: var(--shadow);
-  margin-bottom: 1.2rem;
-}
-
-.input-tab {
-  flex: 1;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0.55rem 0.3rem;
-  border-radius: 9px;
-  font-family: Georgia, serif;
-  font-size: 0.72rem;
+.tab {
+  flex: 1; background: none; border: none; cursor: pointer;
+  padding: 0.5rem 0.2rem; border-radius: 9px;
+  font-family: Georgia, serif; font-size: 0.7rem;
   color: var(--ink-light);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-  transition: background 0.2s, color 0.2s;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 3px;
+  transition: background 0.18s, color 0.18s;
   -webkit-tap-highlight-color: transparent;
 }
-.input-tab svg { opacity: 0.7; }
-.input-tab.active {
-  background: var(--module-color);
-  color: white;
-}
-.input-tab.active svg { opacity: 1; }
-.input-tab:hover:not(.active) { background: var(--line); color: var(--ink); }
+.tab .ti { font-size: 1rem; line-height: 1; }
+.tab.on { background: var(--mod); color: white; }
+.tab:hover:not(.on) { background: var(--line); color: var(--ink); }
 
-/* ─── INPUT PANELS ──────────────────────────────────────────── */
-.input-panel { display: none; }
-.input-panel.active { display: block; }
+/* ── Panels ── */
+.panel { display: none; }
+.panel.on { display: block; }
 
-/* Camera / File drop zone */
-.drop-zone {
-  border: 2px dashed var(--line);
-  border-radius: var(--radius);
-  padding: 2.5rem 1rem;
-  text-align: center;
-  cursor: pointer;
+.drop {
+  border: 2px dashed var(--line); border-radius: var(--radius);
+  padding: 2.2rem 1rem; text-align: center;
+  cursor: pointer; background: white;
   transition: border-color 0.2s, background 0.2s;
-  background: white;
 }
-.drop-zone:hover, .drop-zone.drag-over {
-  border-color: var(--module-color);
-  background: var(--module-bg);
-}
-.drop-zone input { display: none; }
-.drop-zone-icon {
-  color: var(--ink-faint);
-  margin-bottom: 0.5rem;
-  display: flex;
-  justify-content: center;
-}
-.drop-zone p { font-size: 0.85rem; color: var(--ink-light); font-style: italic; }
-.drop-zone small { font-size: 0.75rem; color: var(--ink-faint); }
+.drop:hover, .drop.over { border-color: var(--mod); background: var(--mod-bg); }
+.drop input { display: none; }
+.drop-icon { font-size: 2rem; opacity: 0.35; margin-bottom: 0.4rem; }
+.drop p { font-size: 0.82rem; color: var(--ink-light); font-style: italic; }
+.drop small { font-size: 0.72rem; color: var(--ink-faint); }
 
-/* Text area */
-.lumen-textarea {
-  width: 100%;
-  border: 1.5px solid var(--line);
-  border-radius: var(--radius);
-  padding: 1rem;
-  font-family: Georgia, serif;
-  font-size: 0.95rem;
-  color: var(--ink);
-  background: white;
-  resize: vertical;
-  min-height: 140px;
-  outline: none;
+textarea.lta {
+  width: 100%; border: 1.5px solid var(--line);
+  border-radius: var(--radius); padding: 0.9rem;
+  font-family: Georgia, serif; font-size: 0.95rem;
+  color: var(--ink); background: white;
+  resize: vertical; min-height: 130px;
+  outline: none; line-height: 1.7;
   transition: border-color 0.2s;
-  line-height: var(--line-spacing);
 }
-.lumen-textarea:focus { border-color: var(--module-color); }
+textarea.lta:focus { border-color: var(--mod); }
 
-/* Audio recorder */
-.audio-recorder {
-  background: white;
-  border-radius: var(--radius);
-  padding: 1.5rem;
-  text-align: center;
+.chip {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  background: var(--mod-bg);
+  border: 1px solid color-mix(in srgb, var(--mod) 30%, transparent);
+  color: var(--mod); border-radius: 20px;
+  padding: 0.3rem 0.7rem; font-size: 0.78rem; margin-top: 0.6rem;
+}
+.chip button {
+  background: none; border: none; cursor: pointer;
+  color: var(--mod); display: flex; padding: 0; font-size: 1rem; line-height: 1;
+}
+
+/* Audio */
+.audio-box {
+  background: white; border-radius: var(--radius);
+  padding: 1.5rem; text-align: center;
   box-shadow: var(--shadow);
 }
-.record-btn {
-  width: 72px; height: 72px;
-  border-radius: 50%;
-  border: none;
-  background: var(--module-color);
-  color: white;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+.rec-btn {
+  width: 68px; height: 68px; border-radius: 50%; border: none;
+  background: var(--mod); color: white; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 1.6rem;
   transition: transform 0.2s, box-shadow 0.2s;
-  box-shadow: 0 4px 20px color-mix(in srgb, var(--module-color) 35%, transparent);
-  margin-bottom: 0.75rem;
-}
-.record-btn:hover { transform: scale(1.06); }
-.record-btn.recording {
-  background: #dc2626;
-  animation: pulse 1.2s ease infinite;
-  box-shadow: 0 4px 20px rgba(220,38,38,0.4);
-}
-@keyframes pulse {
-  0%, 100% { transform: scale(1); box-shadow: 0 4px 20px rgba(220,38,38,0.4); }
-  50% { transform: scale(1.07); box-shadow: 0 6px 30px rgba(220,38,38,0.6); }
-}
-.record-label { font-size: 0.82rem; color: var(--ink-light); font-style: italic; }
-.record-timer { font-family: Georgia, serif; font-size: 1.2rem; color: var(--ink); margin: 0.4rem 0; display: none; }
-.audio-preview { margin-top: 1rem; display: none; }
-.audio-preview audio { width: 100%; }
-
-/* File preview chip */
-.file-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  background: var(--module-bg);
-  border: 1px solid color-mix(in srgb, var(--module-color) 30%, transparent);
-  color: var(--module-color);
-  border-radius: 20px;
-  padding: 0.3rem 0.75rem;
-  font-size: 0.8rem;
-  margin-top: 0.75rem;
-}
-.file-chip button {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--module-color);
-  display: flex;
-  padding: 0;
-}
-
-/* ─── EXTRA FIELDS PER MODULE ───────────────────────────────── */
-.field-group { margin-bottom: 1rem; }
-.field-label {
-  font-size: 0.78rem;
-  color: var(--ink-light);
-  margin-bottom: 0.35rem;
-  display: block;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-/* Language fields for Tradúceme */
-.lang-row {
-  display: flex;
-  gap: 0.75rem;
-  align-items: center;
-  margin-bottom: 1rem;
-}
-.lang-select {
-  flex: 1;
-  border: 1.5px solid var(--line);
-  border-radius: 10px;
-  padding: 0.6rem 0.75rem;
-  font-family: Georgia, serif;
-  font-size: 0.9rem;
-  background: white;
-  color: var(--ink);
-  outline: none;
-  cursor: pointer;
-  transition: border-color 0.2s;
-}
-.lang-select:focus { border-color: var(--module-color); }
-.lang-swap {
-  background: none;
-  border: 1.5px solid var(--line);
-  border-radius: 50%;
-  width: 36px; height: 36px;
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  color: var(--ink-light);
-  transition: all 0.2s;
-  flex-shrink: 0;
-}
-.lang-swap:hover { background: var(--line); color: var(--ink); }
-
-/* Context selector for Revisión */
-.context-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-}
-.context-btn {
-  border: 1.5px solid var(--line);
-  background: white;
-  border-radius: 10px;
-  padding: 0.6rem 0.5rem;
-  cursor: pointer;
-  font-family: Georgia, serif;
-  font-size: 0.82rem;
-  color: var(--ink-light);
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  justify-content: center;
-  transition: all 0.2s;
-  -webkit-tap-highlight-color: transparent;
-}
-.context-btn.active {
-  border-color: var(--module-color);
-  background: var(--module-bg);
-  color: var(--module-color);
-}
-
-/* Context selector for Burocracia */
-.buro-type-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-}
-.buro-btn {
-  border: 1.5px solid var(--line);
-  background: white;
-  border-radius: 10px;
-  padding: 0.55rem 0.4rem;
-  cursor: pointer;
-  font-family: Georgia, serif;
-  font-size: 0.78rem;
-  color: var(--ink-light);
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  justify-content: center;
-  transition: all 0.2s;
-  -webkit-tap-highlight-color: transparent;
-}
-.buro-btn.active {
-  border-color: var(--module-color);
-  background: var(--module-bg);
-  color: var(--module-color);
-}
-
-/* ─── SUBMIT BUTTON ─────────────────────────────────────────── */
-.btn-submit {
-  width: 100%;
-  background: var(--module-color);
-  color: white;
-  border: none;
-  border-radius: var(--radius);
-  padding: 1rem;
-  font-family: Georgia, serif;
-  font-size: 1rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  margin-top: 1.2rem;
-  transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
-  box-shadow: 0 4px 16px color-mix(in srgb, var(--module-color) 30%, transparent);
-  -webkit-tap-highlight-color: transparent;
-}
-.btn-submit:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px color-mix(in srgb, var(--module-color) 40%, transparent);
-}
-.btn-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-
-/* ─── LOADING STATE ─────────────────────────────────────────── */
-.loading-overlay {
-  display: none;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem 1.5rem;
-  text-align: center;
-}
-.loading-overlay.show { display: flex; }
-
-.loading-pen {
-  animation: loadingBounce 0.7s ease infinite alternate;
-  filter: drop-shadow(0 4px 10px rgba(0,0,0,0.15));
-}
-@keyframes loadingBounce {
-  from { transform: translateY(0) rotate(-5deg); }
-  to   { transform: translateY(-16px) rotate(5deg); }
-}
-
-.loading-phrase {
-  font-style: italic;
-  font-size: 1rem;
-  color: var(--ink-light);
-  margin-top: 1.5rem;
-  min-height: 1.5rem;
-  transition: opacity 0.4s ease;
-}
-
-.loading-dots {
-  display: flex;
-  gap: 6px;
-  margin-top: 0.75rem;
-  justify-content: center;
-}
-.loading-dots span {
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: var(--module-color);
-  animation: dot 1.2s ease infinite;
-}
-.loading-dots span:nth-child(2) { animation-delay: 0.2s; }
-.loading-dots span:nth-child(3) { animation-delay: 0.4s; }
-
-/* ─── RESULT CARDS ──────────────────────────────────────────── */
-.result-area {
-  display: none;
-  margin-top: 1.5rem;
-}
-.result-area.show { display: block; }
-
-.result-card {
-  background: white;
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  overflow: hidden;
-  margin-bottom: 1rem;
-}
-
-.result-card-header {
-  padding: 0.9rem 1.2rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 1px solid var(--line);
-}
-
-.result-card-title {
-  font-size: 0.78rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--ink-light);
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-.result-card-title .dot {
-  width: 8px; height: 8px;
-  border-radius: 50%;
-  background: var(--module-color);
-}
-
-.result-actions {
-  display: flex;
-  gap: 0.3rem;
-}
-
-.btn-icon {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--ink-faint);
-  padding: 5px;
-  border-radius: 8px;
-  display: flex;
-  transition: color 0.15s, background 0.15s;
-}
-.btn-icon:hover { color: var(--ink); background: var(--line); }
-
-.result-card-body {
-  padding: 1.2rem;
-  font-size: 0.95rem;
-  line-height: 1.75;
-  color: var(--ink);
-  white-space: pre-wrap;
-}
-
-/* ─── TRADÚCEME TOGGLE ──────────────────────────────────────── */
-.version-toggle {
-  display: flex;
-  background: var(--line);
-  border-radius: 10px;
-  padding: 3px;
-  gap: 2px;
-  margin-bottom: 1rem;
-}
-.version-btn {
-  flex: 1;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0.55rem;
-  border-radius: 8px;
-  font-family: Georgia, serif;
-  font-size: 0.85rem;
-  color: var(--ink-light);
-  transition: all 0.2s;
-}
-.version-btn.active {
-  background: white;
-  color: var(--module-color);
-  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-}
-
-/* ─── BUROCRACIA 3-COLUMN RESULT ────────────────────────────── */
-.buro-cols {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 1px;
-  background: var(--line);
-  border-radius: var(--radius);
-  overflow: hidden;
-  margin-bottom: 1rem;
-}
-.buro-col {
-  background: white;
-  padding: 1rem;
-}
-.buro-col-title {
-  font-size: 0.7rem;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  color: var(--module-color);
-  font-weight: normal;
+  box-shadow: 0 4px 18px color-mix(in srgb, var(--mod) 35%, transparent);
   margin-bottom: 0.6rem;
 }
-.buro-col-body {
-  font-size: 0.82rem;
-  line-height: 1.6;
-  color: var(--ink);
-  white-space: pre-wrap;
+.rec-btn:hover { transform: scale(1.06); }
+.rec-btn.on {
+  background: #dc2626;
+  animation: pulse 1.2s ease infinite;
+  box-shadow: 0 4px 18px rgba(220,38,38,0.4);
 }
+@keyframes pulse {
+  0%,100% { transform: scale(1); }
+  50% { transform: scale(1.07); }
+}
+.rec-lbl { font-size: 0.8rem; color: var(--ink-light); font-style: italic; }
+.rec-timer { font-size: 1.2rem; color: var(--ink); margin: 0.3rem 0; display: none; }
+.audio-prev { margin-top: 0.9rem; display: none; }
+.audio-prev audio { width: 100%; }
+.audio-file-drop { margin-top: 0.9rem; }
+.audio-file-drop .drop { padding: 1.2rem; }
 
-/* Rights & Duties below columns */
-.rights-duties {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.75rem;
-  margin-top: 0.75rem;
+/* Module extras */
+.field-lbl {
+  font-size: 0.72rem; letter-spacing: 0.05em;
+  text-transform: uppercase; color: var(--ink-light);
+  margin-bottom: 0.35rem; display: block;
 }
-.rights-card, .duties-card {
-  background: white;
-  border-radius: var(--radius);
-  padding: 1rem;
-  box-shadow: var(--shadow);
+.ctx-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.45rem; margin-bottom: 1rem; }
+.ctx-btn {
+  border: 1.5px solid var(--line); background: white;
+  border-radius: 10px; padding: 0.55rem 0.4rem;
+  cursor: pointer; font-family: Georgia, serif;
+  font-size: 0.8rem; color: var(--ink-light);
+  display: flex; align-items: center; gap: 0.35rem;
+  justify-content: center;
+  transition: all 0.18s;
+  -webkit-tap-highlight-color: transparent;
 }
-.rights-card { border-top: 3px solid var(--green); }
-.duties-card { border-top: 3px solid var(--orange); }
-.rights-duties-title {
-  font-size: 0.7rem;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
+.ctx-btn.on { border-color: var(--mod); background: var(--mod-bg); color: var(--mod); }
+
+/* Submit */
+.btn-go {
+  width: 100%; background: var(--mod); color: white;
+  border: none; border-radius: var(--radius);
+  padding: 0.95rem; font-family: Georgia, serif;
+  font-size: 1rem; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+  margin-top: 1.1rem;
+  transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--mod) 30%, transparent);
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-go:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--mod) 40%, transparent);
+}
+.btn-go:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+
+/* Error */
+.err {
+  background: #fef2f2; border: 1.5px solid #fca5a5;
+  border-radius: var(--radius); padding: 0.9rem 1.1rem;
+  color: #991b1b; font-size: 0.85rem;
+  display: none; margin-top: 0.9rem;
+}
+.err.on { display: block; }
+
+/* Loading */
+.loading {
+  display: none; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 2.5rem 1rem; text-align: center;
+}
+.loading.on { display: flex; }
+.ld-pen { animation: bob 0.65s ease infinite alternate; }
+@keyframes bob {
+  from { transform: translateY(0) rotate(-4deg); }
+  to   { transform: translateY(-14px) rotate(4deg); }
+}
+.ld-phrase {
+  font-style: italic; font-size: 0.95rem;
+  color: var(--ink-light); margin-top: 1.2rem;
+  min-height: 1.4rem; transition: opacity 0.35s;
+}
+.ld-dots { display: flex; gap: 5px; margin-top: 0.6rem; justify-content: center; }
+.ld-dots span {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--mod); animation: dot 1.2s ease infinite;
+}
+.ld-dots span:nth-child(2) { animation-delay: 0.2s; }
+.ld-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+/* Results */
+.results { display: none; margin-top: 1.3rem; }
+.results.on { display: block; animation: fadeUp 0.4s ease; }
+
+.res-card {
+  background: white; border-radius: var(--radius);
+  box-shadow: var(--shadow); overflow: hidden;
+  margin-bottom: 0.9rem;
+}
+.res-head {
+  padding: 0.8rem 1.1rem;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid var(--line);
+}
+.res-label {
+  font-size: 0.72rem; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--ink-light);
+  display: flex; align-items: center; gap: 0.35rem;
+}
+.res-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--mod); }
+.res-body {
+  padding: 1.1rem; font-size: 0.92rem;
+  line-height: 1.75; color: var(--ink);
+  white-space: pre-wrap; word-break: break-word;
+}
+.btn-copy {
+  background: none; border: none; cursor: pointer;
+  color: var(--ink-faint); padding: 4px; border-radius: 6px;
+  font-size: 0.85rem; display: flex;
+  transition: color 0.15s, background 0.15s;
+}
+.btn-copy:hover { color: var(--ink); background: var(--line); }
+
+/* Version toggle (Simplificar) */
+.vtoggle {
+  display: flex; background: var(--line);
+  border-radius: 10px; padding: 3px; gap: 2px; margin-bottom: 0.9rem;
+}
+.vbtn {
+  flex: 1; background: none; border: none; cursor: pointer;
+  padding: 0.5rem; border-radius: 8px;
+  font-family: Georgia, serif; font-size: 0.85rem;
+  color: var(--ink-light); transition: all 0.18s;
+}
+.vbtn.on { background: white; color: var(--mod); box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+
+/* Burocracia 3 cols */
+.buro-cols {
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  gap: 1px; background: var(--line);
+  border-radius: var(--radius); overflow: hidden; margin-bottom: 0.9rem;
+}
+@media (max-width: 420px) { .buro-cols { grid-template-columns: 1fr; } }
+.bcol { background: white; padding: 0.9rem; }
+.bcol-t {
+  font-size: 0.68rem; letter-spacing: 0.07em;
+  text-transform: uppercase; color: var(--mod);
   margin-bottom: 0.5rem;
 }
-.rights-card .rights-duties-title { color: var(--green); }
-.duties-card .rights-duties-title { color: var(--orange); }
-.rights-duties-body {
-  font-size: 0.8rem;
-  line-height: 1.6;
-  color: var(--ink);
-  white-space: pre-wrap;
-}
+.bcol-b { font-size: 0.82rem; line-height: 1.65; color: var(--ink); white-space: pre-wrap; }
 
-/* ─── APUNTES RESULT ────────────────────────────────────────── */
-.apuntes-section { margin-bottom: 1rem; }
-.apuntes-section-title {
-  font-size: 0.78rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--ink-light);
-  margin-bottom: 0.5rem;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-}
+.rd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; margin-bottom: 0.9rem; }
+@media (max-width: 380px) { .rd-grid { grid-template-columns: 1fr; } }
+.rd-card { background: white; border-radius: var(--radius); padding: 0.9rem; box-shadow: var(--shadow); }
+.rd-card.r { border-top: 3px solid var(--green); }
+.rd-card.d { border-top: 3px solid var(--orange); }
+.rd-t { font-size: 0.68rem; letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 0.45rem; }
+.rd-card.r .rd-t { color: var(--green); }
+.rd-card.d .rd-t { color: var(--orange); }
+.rd-b { font-size: 0.8rem; line-height: 1.6; color: var(--ink); white-space: pre-wrap; }
 
-/* ─── SAVE BUTTON ───────────────────────────────────────────── */
+/* Save */
 .btn-save {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: none;
-  border: 1.5px solid var(--line);
-  border-radius: 10px;
-  padding: 0.55rem 1rem;
-  font-family: Georgia, serif;
-  font-size: 0.82rem;
-  color: var(--ink-light);
-  cursor: pointer;
-  transition: all 0.2s;
-  margin: 1rem auto 0;
-  display: block;
+  display: flex; align-items: center; gap: 0.4rem;
+  background: none; border: 1.5px solid var(--line);
+  border-radius: 10px; padding: 0.5rem 0.9rem;
+  font-family: Georgia, serif; font-size: 0.8rem;
+  color: var(--ink-light); cursor: pointer;
+  transition: all 0.18s; margin: 0.5rem auto 0;
   width: fit-content;
 }
-.btn-save:hover { border-color: var(--module-color); color: var(--module-color); }
+.btn-save:hover { border-color: var(--mod); color: var(--mod); }
 
-/* ─── ERROR CARD ────────────────────────────────────────────── */
-.error-card {
-  background: #fef2f2;
-  border: 1.5px solid #fca5a5;
-  border-radius: var(--radius);
-  padding: 1rem 1.2rem;
-  color: #991b1b;
-  font-size: 0.88rem;
-  display: none;
-  margin-top: 1rem;
-}
-.error-card.show { display: block; }
-
-/* ─── ANIMATIONS ────────────────────────────────────────────── */
+/* ── Animations ── */
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(20px); }
+  from { opacity: 0; transform: translateY(18px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-.fade-in { animation: fadeIn 0.35s ease forwards; }
-.slide-up { animation: fadeUp 0.4s ease forwards; }
-
-/* ─── RESPONSIVE ────────────────────────────────────────────── */
-@media (max-width: 380px) {
-  .home-grid { gap: 0.75rem; padding: 1rem 0.9rem; }
-  .mod-card { padding: 1.1rem 0.9rem; }
-  .buro-cols { grid-template-columns: 1fr; }
-  .rights-duties { grid-template-columns: 1fr; }
-}
-
-@media (min-width: 600px) {
-  .buro-cols { grid-template-columns: 1fr 1fr 1fr; }
-}
-
-/* ─── SCROLLBAR ─────────────────────────────────────────────── */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
 </style>
 </head>
 <body>
 
-<!-- WORD CANVAS -->
-<canvas id="wordCanvas"></canvas>
+<canvas id="wc"></canvas>
 
-<!-- ═══ SPLASH SCREEN ═══════════════════════════════════════════ -->
-<div id="splash" class="screen active">
-  <div class="splash-inner">
-    <div class="bubble-container" id="splashBubbleContainer">
-      <div class="speech-bubble" id="splashBubble"></div>
-      <div class="pen-wrapper" id="splashPen" onclick="penClick('splash')">
-        <svg class="pen-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <g class="pen-body">
-            <!-- Clip -->
-            <rect x="43" y="8" width="14" height="28" rx="4" fill="#1a1714" opacity="0.15"/>
-            <rect x="46" y="6" width="8" height="4" rx="2" fill="#1a1714" opacity="0.3"/>
-            <!-- Body -->
-            <rect x="38" y="18" width="24" height="50" rx="6" fill="#2563eb"/>
-            <rect x="38" y="18" width="12" height="50" rx="6" fill="rgba(255,255,255,0.15)"/>
-            <!-- Grip -->
-            <rect x="38" y="58" width="24" height="12" rx="3" fill="#1d4ed8"/>
-            <!-- Nib -->
-            <polygon class="pen-nib" points="50,95 42,68 58,68" fill="#94a3b8"/>
-            <polygon points="50,95 46,68 50,72" fill="#64748b"/>
-            <!-- Gold band -->
-            <rect x="38" y="66" width="24" height="4" rx="1" fill="#fbbf24"/>
-            <!-- Shine -->
-            <rect x="42" y="22" width="4" height="20" rx="2" fill="white" opacity="0.25"/>
-          </g>
-        </svg>
-      </div>
+<!-- ══ SPLASH ══ -->
+<div id="splash" class="screen">
+  <div class="bubble-wrap" style="margin:auto;text-align:center;padding:2rem;">
+    <div class="bubble" id="sb"></div>
+    <div class="pen pen-lg" id="sp" onclick="penClick('sp','sb')">
+      <svg viewBox="0 0 100 100" fill="none"><g id="spb">
+        <rect x="43" y="8" width="14" height="26" rx="4" fill="#1a1714" opacity=".14"/>
+        <rect x="46" y="6" width="8" height="4" rx="2" fill="#1a1714" opacity=".28"/>
+        <rect x="38" y="18" width="24" height="50" rx="6" fill="#2563eb"/>
+        <rect x="38" y="18" width="12" height="50" rx="6" fill="rgba(255,255,255,.15)"/>
+        <rect x="38" y="58" width="24" height="12" rx="3" fill="#1d4ed8"/>
+        <polygon points="50,95 42,68 58,68" fill="#94a3b8"/>
+        <polygon points="50,95 46,68 50,72" fill="#64748b"/>
+        <rect x="38" y="66" width="24" height="4" rx="1" fill="#fbbf24"/>
+        <rect x="42" y="22" width="4" height="20" rx="2" fill="white" opacity=".22"/>
+      </g></svg>
     </div>
-    <div class="splash-title">Lumen</div>
-    <div class="splash-subtitle">tu asistente de texto</div>
-    <div class="splash-loading">Preparando <span class="splash-dots"><span>.</span><span>.</span><span>.</span></span></div>
-    <div class="splash-phrase" id="splashPhrase"></div>
+    <div class="splash-logo">Lumen</div>
+    <div class="splash-sub">tu asistente de texto</div>
+    <div class="splash-phrase" id="sph">Preparando <span class="dots"><span>.</span><span>.</span><span>.</span></span></div>
   </div>
 </div>
 
-<!-- ═══ HOME SCREEN ═══════════════════════════════════════════════ -->
-<div id="home" class="screen">
-  <div class="home-header">
-    <div class="bubble-container" id="homeBubbleContainer">
-      <div class="speech-bubble" id="homeBubble"></div>
-      <div class="pen-wrapper" id="homePen" onclick="penClick('home')">
-        <svg class="pen-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <g class="pen-body">
-            <rect x="43" y="8" width="14" height="28" rx="4" fill="#1a1714" opacity="0.15"/>
-            <rect x="46" y="6" width="8" height="4" rx="2" fill="#1a1714" opacity="0.3"/>
-            <rect x="38" y="18" width="24" height="50" rx="6" fill="#2563eb"/>
-            <rect x="38" y="18" width="12" height="50" rx="6" fill="rgba(255,255,255,0.15)"/>
-            <rect x="38" y="58" width="24" height="12" rx="3" fill="#1d4ed8"/>
-            <polygon class="pen-nib" points="50,95 42,68 58,68" fill="#94a3b8"/>
-            <polygon points="50,95 46,68 50,72" fill="#64748b"/>
-            <rect x="38" y="66" width="24" height="4" rx="1" fill="#fbbf24"/>
-            <rect x="42" y="22" width="4" height="20" rx="2" fill="white" opacity="0.25"/>
-          </g>
-        </svg>
+<!-- ══ HOME ══ -->
+<div id="home" class="screen hidden">
+  <div class="home-head">
+    <div class="bubble-wrap">
+      <div class="bubble" id="hb"></div>
+      <div class="pen pen-lg" id="hp" onclick="penClick('hp','hb')">
+        <svg viewBox="0 0 100 100" fill="none"><g id="hpb">
+          <rect x="43" y="8" width="14" height="26" rx="4" fill="#1a1714" opacity=".14"/>
+          <rect x="46" y="6" width="8" height="4" rx="2" fill="#1a1714" opacity=".28"/>
+          <rect x="38" y="18" width="24" height="50" rx="6" fill="#2563eb"/>
+          <rect x="38" y="18" width="12" height="50" rx="6" fill="rgba(255,255,255,.15)"/>
+          <rect x="38" y="58" width="24" height="12" rx="3" fill="#1d4ed8"/>
+          <polygon points="50,95 42,68 58,68" fill="#94a3b8"/>
+          <polygon points="50,95 46,68 50,72" fill="#64748b"/>
+          <rect x="38" y="66" width="24" height="4" rx="1" fill="#fbbf24"/>
+          <rect x="42" y="22" width="4" height="20" rx="2" fill="white" opacity=".22"/>
+        </g></svg>
       </div>
     </div>
     <div class="home-logo">Lumen</div>
-    <div class="home-tagline">¿Qué quieres entender hoy?</div>
+    <div class="home-tag">¿Qué quieres entender hoy?</div>
   </div>
 
-  <div class="home-grid">
-    <!-- Tradúceme -->
-    <div class="mod-card" data-module="traduceme" onclick="openModule('traduceme')">
-      <div class="mod-icon">
-        <i data-lucide="languages" width="18" height="18"></i>
-      </div>
-      <div class="mod-name">Tradúceme</div>
-      <div class="mod-desc">Simple y completa a la vez</div>
+  <div class="grid">
+    <div class="card" data-m="simplificar" onclick="openMod('simplificar')">
+      <div class="card-icon">📖</div>
+      <div class="card-name">Simplificar</div>
+      <div class="card-desc">Textos difíciles en palabras claras</div>
     </div>
-    <!-- Burocracia -->
-    <div class="mod-card" data-module="burocracia" onclick="openModule('burocracia')">
-      <div class="mod-icon">
-        <i data-lucide="landmark" width="18" height="18"></i>
-      </div>
-      <div class="mod-name">Burocracia</div>
-      <div class="mod-desc">Entiende qué te piden</div>
+    <div class="card" data-m="burocracia" onclick="openMod('burocracia')">
+      <div class="card-icon">🏛️</div>
+      <div class="card-name">Burocracia</div>
+      <div class="card-desc">Entiende lo que te piden</div>
     </div>
-    <!-- Apuntes -->
-    <div class="mod-card" data-module="apuntes" onclick="openModule('apuntes')">
-      <div class="mod-icon">
-        <i data-lucide="mic" width="18" height="18"></i>
-      </div>
-      <div class="mod-name">Apuntes</div>
-      <div class="mod-desc">Graba, transcribe, resume</div>
+    <div class="card" data-m="apuntes" onclick="openMod('apuntes')">
+      <div class="card-icon">🎙️</div>
+      <div class="card-name">Apuntes</div>
+      <div class="card-desc">Graba, transcribe y resume</div>
     </div>
-    <!-- Revisión -->
-    <div class="mod-card" data-module="revision" onclick="openModule('revision')">
-      <div class="mod-icon">
-        <i data-lucide="mail-check" width="18" height="18"></i>
-      </div>
-      <div class="mod-name">Revisión</div>
-      <div class="mod-desc">Mejora lo que escribes</div>
+    <div class="card" data-m="revision" onclick="openMod('revision')">
+      <div class="card-icon">✉️</div>
+      <div class="card-name">Revisión</div>
+      <div class="card-desc">Mejora lo que escribes</div>
     </div>
   </div>
 </div>
 
-<!-- ═══ MODULE SCREEN TEMPLATE ═══════════════════════════════════ -->
-<div id="moduleScreen" class="screen module-screen">
-  <div class="module-header">
-    <button class="btn-back" onclick="goHome()">
-      <i data-lucide="arrow-left" width="20" height="20"></i>
-    </button>
-    <div class="module-title-area">
-      <div class="module-title" id="moduleTitle">Módulo</div>
-      <div class="module-subtitle" id="moduleSubtitle"></div>
+<!-- ══ MODULE ══ -->
+<div id="mod" class="screen hidden">
+  <div class="mod-head">
+    <button class="btn-back" onclick="goHome()" title="Volver">&#8592;</button>
+    <div class="mod-title-wrap">
+      <div class="mod-title" id="mt">Módulo</div>
+      <div class="mod-sub" id="ms"></div>
     </div>
-    <!-- Small pen in corner -->
-    <div class="pen-small bubble-container" id="moduleBubbleContainer">
-      <div class="speech-bubble" id="moduleBubble"></div>
-      <div class="pen-wrapper" onclick="penClick('module')">
-        <svg class="pen-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <g class="pen-body">
-            <rect x="43" y="8" width="14" height="28" rx="4" fill="#1a1714" opacity="0.15"/>
-            <rect x="46" y="6" width="8" height="4" rx="2" fill="#1a1714" opacity="0.3"/>
-            <rect x="38" y="18" width="24" height="50" rx="6" id="penBodyColor" fill="#2563eb"/>
-            <rect x="38" y="18" width="12" height="50" rx="6" fill="rgba(255,255,255,0.15)"/>
-            <rect x="38" y="58" width="24" height="12" rx="3" id="penBodyDark" fill="#1d4ed8"/>
-            <polygon class="pen-nib" points="50,95 42,68 58,68" fill="#94a3b8"/>
-            <polygon points="50,95 46,68 50,72" fill="#64748b"/>
-            <rect x="38" y="66" width="24" height="4" rx="1" fill="#fbbf24"/>
-            <rect x="42" y="22" width="4" height="20" rx="2" fill="white" opacity="0.25"/>
-          </g>
-        </svg>
+    <div class="pen-sm-wrap bubble-wrap">
+      <div class="bubble" id="mb"></div>
+      <div class="pen pen-sm" id="mp" onclick="penClick('mp','mb')">
+        <svg viewBox="0 0 100 100" fill="none"><g id="mpb">
+          <rect x="43" y="8" width="14" height="26" rx="4" fill="#1a1714" opacity=".14"/>
+          <rect x="46" y="6" width="8" height="4" rx="2" fill="#1a1714" opacity=".28"/>
+          <rect x="38" y="18" width="24" height="50" rx="6" id="pc" fill="#2563eb"/>
+          <rect x="38" y="18" width="12" height="50" rx="6" fill="rgba(255,255,255,.15)"/>
+          <rect x="38" y="58" width="24" height="12" rx="3" id="pcd" fill="#1d4ed8"/>
+          <polygon points="50,95 42,68 58,68" fill="#94a3b8"/>
+          <polygon points="50,95 46,68 50,72" fill="#64748b"/>
+          <rect x="38" y="66" width="24" height="4" rx="1" fill="#fbbf24"/>
+          <rect x="42" y="22" width="4" height="20" rx="2" fill="white" opacity=".22"/>
+        </g></svg>
       </div>
     </div>
   </div>
 
-  <div class="module-content">
+  <div class="mod-body">
 
     <!-- INPUT TABS -->
-    <div class="input-tabs" id="inputTabs">
-      <button class="input-tab active" data-tab="scan" onclick="switchTab('scan')">
-        <i data-lucide="camera" width="16" height="16"></i>
-        Escanear
+    <div class="tabs">
+      <button class="tab on" data-t="scan" onclick="switchTab('scan')">
+        <span class="ti">📷</span>Escanear
       </button>
-      <button class="input-tab" data-tab="file" onclick="switchTab('file')">
-        <i data-lucide="paperclip" width="16" height="16"></i>
-        Archivo
+      <button class="tab" data-t="file" onclick="switchTab('file')">
+        <span class="ti">📎</span>Archivo
       </button>
-      <button class="input-tab" data-tab="text" onclick="switchTab('text')">
-        <i data-lucide="type" width="16" height="16"></i>
-        Texto
+      <button class="tab" data-t="text" onclick="switchTab('text')">
+        <span class="ti">✏️</span>Texto
       </button>
-      <button class="input-tab" data-tab="audio" onclick="switchTab('audio')">
-        <i data-lucide="mic" width="16" height="16"></i>
-        Audio
+      <button class="tab" data-t="audio" onclick="switchTab('audio')">
+        <span class="ti">🎙️</span>Audio
       </button>
     </div>
 
-    <!-- SCAN PANEL -->
-    <div class="input-panel active" id="panel-scan">
-      <div class="drop-zone" id="scanZone" onclick="document.getElementById('scanInput').click()" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event,'scan')">
-        <input type="file" id="scanInput" accept="image/*" capture="environment" onchange="fileSelected(event,'scan')">
-        <div class="drop-zone-icon"><i data-lucide="scan-line" width="32" height="32"></i></div>
+    <!-- SCAN -->
+    <div class="panel on" id="p-scan">
+      <div class="drop" id="dz-scan"
+           onclick="document.getElementById('fi-scan').click()"
+           ondragover="dov(event)" ondragleave="dlv(event)" ondrop="ddrop(event,'scan')">
+        <input type="file" id="fi-scan" accept="image/*" capture="environment" onchange="fsel(event,'scan')">
+        <div class="drop-icon">🔍</div>
         <p>Toca para abrir la cámara</p>
-        <small>o arrastra una imagen aquí</small>
+        <small>o arrastra una imagen</small>
       </div>
-      <div id="scanChip" class="file-chip" style="display:none">
-        <i data-lucide="image" width="14" height="14"></i>
-        <span id="scanFileName">imagen.jpg</span>
-        <button onclick="clearFile('scan')"><i data-lucide="x" width="12" height="12"></i></button>
+      <div class="chip" id="ch-scan" style="display:none">
+        📷 <span id="fn-scan"></span>
+        <button onclick="clearF('scan')">✕</button>
       </div>
     </div>
 
-    <!-- FILE PANEL -->
-    <div class="input-panel" id="panel-file">
-      <div class="drop-zone" id="fileZone" onclick="document.getElementById('fileInput').click()" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event,'file')">
-        <input type="file" id="fileInput" accept=".pdf,.doc,.docx,.txt,image/*" onchange="fileSelected(event,'file')">
-        <div class="drop-zone-icon"><i data-lucide="upload-cloud" width="32" height="32"></i></div>
+    <!-- FILE -->
+    <div class="panel" id="p-file">
+      <div class="drop" id="dz-file"
+           onclick="document.getElementById('fi-file').click()"
+           ondragover="dov(event)" ondragleave="dlv(event)" ondrop="ddrop(event,'file')">
+        <input type="file" id="fi-file" accept=".pdf,.doc,.docx,.txt,image/*" onchange="fsel(event,'file')">
+        <div class="drop-icon">📄</div>
         <p>Arrastra o toca para subir</p>
         <small>PDF, imagen, Word, texto</small>
       </div>
-      <div id="fileChip" class="file-chip" style="display:none">
-        <i data-lucide="file-text" width="14" height="14"></i>
-        <span id="fileFileName">documento.pdf</span>
-        <button onclick="clearFile('file')"><i data-lucide="x" width="12" height="12"></i></button>
+      <div class="chip" id="ch-file" style="display:none">
+        📄 <span id="fn-file"></span>
+        <button onclick="clearF('file')">✕</button>
       </div>
     </div>
 
-    <!-- TEXT PANEL -->
-    <div class="input-panel" id="panel-text">
-      <textarea class="lumen-textarea" id="mainTextarea" placeholder="Escribe o pega tu texto aquí…" rows="6"></textarea>
+    <!-- TEXT -->
+    <div class="panel" id="p-text">
+      <textarea class="lta" id="ta" placeholder="Escribe o pega tu texto aquí…" rows="6"></textarea>
     </div>
 
-    <!-- AUDIO PANEL -->
-    <div class="input-panel" id="panel-audio">
-      <div class="audio-recorder">
-        <button class="record-btn" id="recordBtn" onclick="toggleRecord()">
-          <i data-lucide="mic" width="28" height="28" id="recordIcon"></i>
-        </button>
-        <div class="record-timer" id="recordTimer">0:00</div>
-        <div class="record-label" id="recordLabel">Toca para grabar</div>
-        <div class="audio-preview" id="audioPreview">
-          <audio controls id="audioPlayer"></audio>
+    <!-- AUDIO -->
+    <div class="panel" id="p-audio">
+      <div class="audio-box">
+        <button class="rec-btn" id="rb" onclick="toggleRec()">🎙️</button>
+        <div class="rec-timer" id="rt">0:00</div>
+        <div class="rec-lbl" id="rl">Toca para grabar</div>
+        <div class="audio-prev" id="ap">
+          <audio controls id="apl"></audio>
         </div>
       </div>
-      <div class="field-group" style="margin-top:1rem;">
-        <div class="drop-zone" onclick="document.getElementById('audioFileInput').click()" style="padding:1.5rem">
-          <input type="file" id="audioFileInput" accept="audio/*,video/*" onchange="audioFileSelected(event)">
-          <div class="drop-zone-icon"><i data-lucide="file-audio" width="24" height="24"></i></div>
-          <p style="font-size:0.8rem">O sube un archivo de audio</p>
+      <div class="audio-file-drop">
+        <div class="drop" onclick="document.getElementById('fi-audio').click()" style="padding:1.1rem">
+          <input type="file" id="fi-audio" accept="audio/*,video/*" onchange="asel(event)">
+          <div class="drop-icon" style="font-size:1.4rem">🎵</div>
+          <p style="font-size:0.78rem">O sube un archivo de audio</p>
         </div>
-        <div id="audioFileChip" class="file-chip" style="display:none">
-          <i data-lucide="music" width="14" height="14"></i>
-          <span id="audioFileName">audio.mp3</span>
-          <button onclick="clearAudioFile()"><i data-lucide="x" width="12" height="12"></i></button>
+        <div class="chip" id="ch-audio" style="display:none">
+          🎵 <span id="fn-audio"></span>
+          <button onclick="clearAudio()">✕</button>
         </div>
       </div>
     </div>
 
-    <!-- MODULE-SPECIFIC EXTRAS (injected dynamically) -->
-    <div id="moduleExtras"></div>
+    <!-- MODULE EXTRAS -->
+    <div id="mx"></div>
 
     <!-- SUBMIT -->
-    <button class="btn-submit" id="submitBtn" onclick="submitModule()">
-      <i data-lucide="wand-2" width="18" height="18"></i>
-      <span id="submitLabel">Analizar</span>
+    <button class="btn-go" id="bg" onclick="submit()">
+      <span id="bi">✨</span> <span id="bl">Analizar</span>
     </button>
 
     <!-- ERROR -->
-    <div class="error-card" id="errorCard"></div>
+    <div class="err" id="er"></div>
 
     <!-- LOADING -->
-    <div class="loading-overlay" id="loadingOverlay">
-      <div class="loading-pen">
-        <svg width="70" height="70" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <g class="pen-body">
-            <rect x="43" y="8" width="14" height="28" rx="4" fill="#1a1714" opacity="0.15"/>
-            <rect x="46" y="6" width="8" height="4" rx="2" fill="#1a1714" opacity="0.3"/>
-            <rect x="38" y="18" width="24" height="50" rx="6" id="loadingPenColor" fill="#2563eb"/>
-            <rect x="38" y="18" width="12" height="50" rx="6" fill="rgba(255,255,255,0.15)"/>
-            <rect x="38" y="58" width="24" height="12" rx="3" fill="rgba(0,0,0,0.15)"/>
-            <polygon points="50,95 42,68 58,68" fill="#94a3b8"/>
-            <polygon points="50,95 46,68 50,72" fill="#64748b"/>
-            <rect x="38" y="66" width="24" height="4" rx="1" fill="#fbbf24"/>
-            <rect x="42" y="22" width="4" height="20" rx="2" fill="white" opacity="0.25"/>
-          </g>
+    <div class="loading" id="ld">
+      <div class="ld-pen">
+        <svg width="64" height="64" viewBox="0 0 100 100" fill="none">
+          <rect x="43" y="8" width="14" height="26" rx="4" fill="#1a1714" opacity=".14"/>
+          <rect x="46" y="6" width="8" height="4" rx="2" fill="#1a1714" opacity=".28"/>
+          <rect x="38" y="18" width="24" height="50" rx="6" id="lpc" fill="#2563eb"/>
+          <rect x="38" y="18" width="12" height="50" rx="6" fill="rgba(255,255,255,.15)"/>
+          <rect x="38" y="58" width="24" height="12" rx="3" fill="rgba(0,0,0,.12)"/>
+          <polygon points="50,95 42,68 58,68" fill="#94a3b8"/>
+          <polygon points="50,95 46,68 50,72" fill="#64748b"/>
+          <rect x="38" y="66" width="24" height="4" rx="1" fill="#fbbf24"/>
+          <rect x="42" y="22" width="4" height="20" rx="2" fill="white" opacity=".22"/>
         </svg>
       </div>
-      <div class="loading-phrase" id="loadingPhrase">Leyendo el texto…</div>
-      <div class="loading-dots">
-        <span></span><span></span><span></span>
-      </div>
+      <div class="ld-phrase" id="lp">Procesando…</div>
+      <div class="ld-dots"><span></span><span></span><span></span></div>
     </div>
 
     <!-- RESULTS -->
-    <div class="result-area" id="resultArea"></div>
+    <div class="results" id="res"></div>
 
   </div>
 </div>
 
-<!-- ═══ JAVASCRIPT ══════════════════════════════════════════════ -->
+<!-- ══ SCRIPT ══ -->
 <script>
-const BACKEND = 'https://lumen-backend-674628598121.europe-west1.run.app';
+const API = 'https://lumen-backend-674628598121.europe-west1.run.app';
 
-// ─── MODULE CONFIG ───────────────────────────────────────────────
-const MODULES = {
-  traduceme: {
-    title: 'Tradúceme',
-    subtitle: 'Traducción simple y completa',
-    color: '#2563eb',
-    colorDark: '#1d4ed8',
-    colorBg: '#eff6ff',
-    cssVar: 'var(--blue)',
-    submitLabel: 'Traducir',
-    loadingPhrases: [
-      'Buscando las palabras exactas…',
-      'Comparando matices…',
-      'Eligiendo la versión más clara…',
-      'Analizando contexto…',
-    ],
+const MODS = {
+  simplificar: {
+    title: 'Simplificar',
+    sub: 'Adapta textos difíciles a lenguaje claro',
+    color: '#2563eb', dark: '#1d4ed8', bg: '#eff6ff',
+    label: 'Simplificar',
     endpoint: '/traduceme',
+    phrases: ['Leyendo el texto…','Buscando palabras más claras…','Eliminando tecnicismos…','Casi listo…'],
   },
   burocracia: {
     title: 'Burocracia',
-    subtitle: 'Entiende documentos oficiales',
-    color: '#16a34a',
-    colorDark: '#15803d',
-    colorBg: '#f0fdf4',
-    cssVar: 'var(--green)',
-    submitLabel: 'Analizar',
-    loadingPhrases: [
-      'Descifrando el lenguaje burocrático…',
-      'Identificando tus derechos…',
-      'Ordenando la información…',
-      'Traduciendo del funcionariés…',
-    ],
+    sub: 'Entiende documentos oficiales',
+    color: '#16a34a', dark: '#15803d', bg: '#f0fdf4',
+    label: 'Analizar documento',
     endpoint: '/burocracia',
+    phrases: ['Descifrando el lenguaje oficial…','Identificando tus derechos…','Organizando la información…','Casi listo…'],
   },
   apuntes: {
     title: 'Apuntes',
-    subtitle: 'Transcribe y resume',
-    color: '#ea580c',
-    colorDark: '#c2410c',
-    colorBg: '#fff7ed',
-    cssVar: 'var(--orange)',
-    submitLabel: 'Transcribir y resumir',
-    loadingPhrases: [
-      'Escuchando con atención…',
-      'Convirtiendo voz en texto…',
-      'Identificando los puntos clave…',
-      'Organizando tus notas…',
-    ],
+    sub: 'Transcribe y resume',
+    color: '#ea580c', dark: '#c2410c', bg: '#fff7ed',
+    label: 'Transcribir y resumir',
     endpoint: '/apuntes',
+    phrases: ['Escuchando el audio…','Transcribiendo con Whisper…','Identificando puntos clave…','Casi listo…'],
   },
   revision: {
     title: 'Revisión',
-    subtitle: 'Mejora lo que escribes',
-    color: '#7c3aed',
-    colorDark: '#6d28d9',
-    colorBg: '#f5f3ff',
-    cssVar: 'var(--violet)',
-    submitLabel: 'Revisar y mejorar',
-    loadingPhrases: [
-      'Leyendo entre líneas…',
-      'Puliendo el tono…',
-      'Buscando la versión perfecta…',
-      'Ajustando el registro…',
-    ],
+    sub: 'Mejora lo que escribes',
+    color: '#7c3aed', dark: '#6d28d9', bg: '#f5f3ff',
+    label: 'Revisar y mejorar',
     endpoint: '/revision',
+    phrases: ['Leyendo tu texto…','Ajustando el tono…','Buscando la versión perfecta…','Casi listo…'],
   },
 };
 
-// ─── PEN PHRASES ─────────────────────────────────────────────────
-const PEN_PHRASES = [
-  '¡Aquí estoy!',
-  'A tu servicio.',
-  '¿Necesitas algo?',
-  '¡Vamos a ello!',
-  'Soy todo oídos.',
-  '¿En qué te ayudo?',
-  'Listo para escribir.',
-  '¡Tú diriges!',
-];
+const PHRASES = ['¡Aquí estoy!','A tu servicio.','¿Necesitas algo?','¡Vamos!','Soy todo oídos.','Listo para escribir.'];
+const SPLASH_PH = ['Preparando la tinta…','Afilando la punta…','Cargando palabras…','Casi listo…'];
 
-const SPLASH_PHRASES = [
-  'Cargando las palabras…',
-  'Preparando la tinta…',
-  'Afilando la punta…',
-  'Casi listo…',
-];
+let curMod = null, curTab = 'scan';
+let scanF = null, docF = null, audBlob = null, audFile = null;
+let mr = null, recChunks = [], recSec = 0, recInt = null, isRec = false;
+let simpResult = null;
+let ctxSel = 'Trabajo';
 
-// ─── STATE ────────────────────────────────────────────────────────
-let currentModule = null;
-let currentTab = 'scan';
-let scanFile = null;
-let docFile = null;
-let audioBlob = null;
-let audioFile = null;
-let mediaRecorder = null;
-let recordChunks = [];
-let recordInterval = null;
-let recordSeconds = 0;
-let isRecording = false;
-let traducemeResult = null; // { simple, completa }
-let currentVersionShown = 'simple';
-let selectedContext = 'Trabajo';
-let selectedBuroType = 'Notificación';
-
-// ─── INIT ─────────────────────────────────────────────────────────
+// ── INIT ──
 window.addEventListener('load', () => {
-  if (typeof lucide !== "undefined") lucide.createIcons();
-  startWordCanvas();
-  startSplash();
-  fetch(BACKEND + '/').catch(() => {});
+  startCanvas();
+  splashGo();
+  fetch(API + '/').catch(() => {});
 });
 
-// ─── SPLASH ───────────────────────────────────────────────────────
-function startSplash() {
-  let idx = 0;
-  const el = document.getElementById('splashPhrase');
-  el.textContent = SPLASH_PHRASES[0];
-
-  const interval = setInterval(() => {
-    idx++;
-    if (idx >= SPLASH_PHRASES.length) {
-      clearInterval(interval);
-    } else {
-      el.style.opacity = 0;
-      setTimeout(() => {
-        el.textContent = SPLASH_PHRASES[idx];
-        el.style.opacity = 1;
-      }, 300);
-    }
+// ── SPLASH ──
+function splashGo() {
+  let i = 0;
+  const el = document.getElementById('sph');
+  const cycle = setInterval(() => {
+    i++;
+    if (i >= SPLASH_PH.length) { clearInterval(cycle); return; }
+    el.style.opacity = 0;
+    setTimeout(() => { el.innerHTML = SPLASH_PH[i]; el.style.opacity = 1; }, 280);
   }, 900);
-
-  setTimeout(() => {
-    transitionToHome();
-  }, 3200);
+  setTimeout(toHome, 3000);
+}
+function toHome() {
+  const s = document.getElementById('splash');
+  s.style.transition = 'opacity 0.45s';
+  s.style.opacity = 0;
+  setTimeout(() => show('home'), 450);
 }
 
-function transitionToHome() {
-  const splash = document.getElementById('splash');
-  splash.style.transition = 'opacity 0.5s ease';
-  splash.style.opacity = 0;
-  setTimeout(() => {
-    showScreen('home');
-    if (typeof lucide !== "undefined") lucide.createIcons();
-  }, 500);
-}
-
-// ─── SCREENS ──────────────────────────────────────────────────────
-function showScreen(id) {
+// ── SCREEN TRANSITIONS ──
+function show(id) {
   document.querySelectorAll('.screen').forEach(s => {
-    s.classList.remove('active');
-    s.style.display = '';
+    s.classList.add('hidden');
   });
   const el = document.getElementById(id);
-  el.classList.add('active');
-  el.style.opacity = 0;
-  el.style.transition = 'opacity 0.35s ease';
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => { el.style.opacity = 1; });
-  });
+  el.classList.remove('hidden', 'slide-back');
+  el.scrollTop = 0;
 }
 
 function goHome() {
-  resetModuleState();
-  showScreen('home');
-  setTimeout(() => { if (typeof lucide !== "undefined") lucide.createIcons(); }, 50);
+  resetMod();
+  show('home');
 }
 
-// ─── OPEN MODULE ──────────────────────────────────────────────────
-function openModule(moduleId) {
-  currentModule = moduleId;
-  const cfg = MODULES[moduleId];
-
-  // Apply module color to CSS vars
-  const root = document.documentElement;
-  root.style.setProperty('--module-color', cfg.color);
-  root.style.setProperty('--module-bg', cfg.colorBg);
-
-  // Update pen body color
-  document.getElementById('penBodyColor').setAttribute('fill', cfg.color);
-  document.getElementById('penBodyDark').setAttribute('fill', cfg.colorDark);
-  document.getElementById('loadingPenColor').setAttribute('fill', cfg.color);
-
-  // Header
-  document.getElementById('moduleTitle').innerHTML = cfg.title;
-  document.getElementById('moduleSubtitle').textContent = cfg.subtitle;
-  document.getElementById('submitLabel').textContent = cfg.submitLabel;
-
-  // Reset tabs to scan
+// ── OPEN MODULE ──
+function openMod(id) {
+  curMod = id;
+  const c = MODS[id];
+  const r = document.documentElement;
+  r.style.setProperty('--mod', c.color);
+  r.style.setProperty('--mod-bg', c.bg);
+  document.getElementById('pc').setAttribute('fill', c.color);
+  document.getElementById('pcd').setAttribute('fill', c.dark);
+  document.getElementById('lpc').setAttribute('fill', c.color);
+  document.getElementById('mt').textContent = c.title;
+  document.getElementById('ms').textContent = c.sub;
+  document.getElementById('bl').textContent = c.label;
   switchTab('scan');
-
-  // Inject module-specific extras
-  renderModuleExtras(moduleId);
-
-  // Reset results
-  resetResults();
-
-  showScreen('moduleScreen');
-  setTimeout(() => { if (typeof lucide !== "undefined") lucide.createIcons(); }, 50);
+  renderExtras(id);
+  clearResults();
+  show('mod');
 }
 
-// ─── MODULE EXTRAS ────────────────────────────────────────────────
-function renderModuleExtras(moduleId) {
-  const container = document.getElementById('moduleExtras');
-  container.innerHTML = '';
-
-  if (moduleId === 'traduceme') {
-    container.innerHTML = `
-      <div class="lang-row">
-        <select class="lang-select" id="fromLang">
-          <option value="auto">Detectar idioma</option>
-          <option value="es">Español</option>
-          <option value="en">Inglés</option>
-          <option value="fr">Francés</option>
-          <option value="de">Alemán</option>
-          <option value="it">Italiano</option>
-          <option value="pt">Portugués</option>
-          <option value="zh">Chino</option>
-          <option value="ar">Árabe</option>
-          <option value="ru">Ruso</option>
-          <option value="ja">Japonés</option>
-        </select>
-        <button class="lang-swap" onclick="swapLangs()" title="Intercambiar idiomas">
-          <i data-lucide="arrow-left-right" width="16" height="16"></i>
-        </button>
-        <select class="lang-select" id="toLang">
-          <option value="es">Español</option>
-          <option value="en" selected>Inglés</option>
-          <option value="fr">Francés</option>
-          <option value="de">Alemán</option>
-          <option value="it">Italiano</option>
-          <option value="pt">Portugués</option>
-          <option value="zh">Chino</option>
-          <option value="ar">Árabe</option>
-          <option value="ru">Ruso</option>
-          <option value="ja">Japonés</option>
-        </select>
-      </div>
-    `;
-  }
-
-  if (moduleId === 'burocracia') {
-    container.innerHTML = `
-      <div class="field-group">
-        <label class="field-label">Tipo de documento</label>
-        <div class="buro-type-grid">
-          ${['Notificación','Multa','Contrato','Formulario','Resolución','Otro'].map(t => `
-            <button class="buro-btn${t === selectedBuroType ? ' active' : ''}" onclick="selectBuroType('${t}')">${t}</button>
-          `).join('')}
+// ── EXTRAS ──
+function renderExtras(id) {
+  const el = document.getElementById('mx');
+  if (id === 'revision') {
+    el.innerHTML = `
+      <div style="margin-bottom:1rem">
+        <label class="field-lbl">Contexto del mensaje</label>
+        <div class="ctx-grid">
+          ${[['Trabajo','💼'],['Pareja','💛'],['Familia','🏠'],['Legal','⚖️']].map(([l,ic]) =>
+            `<button class="ctx-btn${l===ctxSel?' on':''}" onclick="setSel('${l}',this)">${ic} ${l}</button>`
+          ).join('')}
         </div>
-      </div>
-    `;
-  }
-
-  if (moduleId === 'revision') {
-    container.innerHTML = `
-      <div class="field-group">
-        <label class="field-label">Contexto</label>
-        <div class="context-grid">
-          ${[
-            {label:'Trabajo', icon:'briefcase'},
-            {label:'Pareja', icon:'heart'},
-            {label:'Familia', icon:'home'},
-            {label:'Legal', icon:'scale'},
-          ].map(c => `
-            <button class="context-btn${c.label === selectedContext ? ' active' : ''}" onclick="selectContext('${c.label}')">
-              <i data-lucide="${c.icon}" width="14" height="14"></i> ${c.label}
-            </button>
-          `).join('')}
-        </div>
-      </div>
-    `;
-  }
-
-  setTimeout(() => { if (typeof lucide !== "undefined") lucide.createIcons(); }, 30);
-}
-
-// ─── TAB SWITCHING ────────────────────────────────────────────────
-function switchTab(tab) {
-  currentTab = tab;
-  document.querySelectorAll('.input-tab').forEach(t => {
-    t.classList.toggle('active', t.dataset.tab === tab);
-  });
-  document.querySelectorAll('.input-panel').forEach(p => {
-    p.classList.toggle('active', p.id === 'panel-' + tab);
-  });
-}
-
-// ─── FILE HANDLING ────────────────────────────────────────────────
-function fileSelected(event, type) {
-  const file = event.target.files[0];
-  if (!file) return;
-  if (type === 'scan') {
-    scanFile = file;
-    document.getElementById('scanFileName').textContent = file.name;
-    document.getElementById('scanChip').style.display = 'inline-flex';
+      </div>`;
   } else {
-    docFile = file;
-    document.getElementById('fileFileName').textContent = file.name;
-    document.getElementById('fileChip').style.display = 'inline-flex';
+    el.innerHTML = '';
   }
 }
 
-function clearFile(type) {
-  if (type === 'scan') {
-    scanFile = null;
-    document.getElementById('scanInput').value = '';
-    document.getElementById('scanChip').style.display = 'none';
-  } else {
-    docFile = null;
-    document.getElementById('fileInput').value = '';
-    document.getElementById('fileChip').style.display = 'none';
-  }
+function setSel(v, btn) {
+  ctxSel = v;
+  btn.closest('.ctx-grid').querySelectorAll('.ctx-btn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
 }
 
-function dragOver(e) {
-  e.preventDefault();
-  e.currentTarget.classList.add('drag-over');
-}
-function dragLeave(e) { e.currentTarget.classList.remove('drag-over'); }
-function dropFile(e, type) {
-  e.preventDefault();
-  e.currentTarget.classList.remove('drag-over');
-  const file = e.dataTransfer.files[0];
-  if (!file) return;
-  const fakeEvent = { target: { files: [file] } };
-  fileSelected(fakeEvent, type);
+// ── TABS ──
+function switchTab(t) {
+  curTab = t;
+  document.querySelectorAll('.tab').forEach(b => b.classList.toggle('on', b.dataset.t === t));
+  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('on', p.id === 'p-'+t));
 }
 
-// ─── AUDIO RECORDING ──────────────────────────────────────────────
-async function toggleRecord() {
-  if (!isRecording) {
+// ── FILE HANDLING ──
+function fsel(e, type) {
+  const f = e.target.files[0]; if (!f) return;
+  if (type === 'scan') { scanF = f; document.getElementById('fn-scan').textContent = f.name; document.getElementById('ch-scan').style.display='inline-flex'; }
+  else { docF = f; document.getElementById('fn-file').textContent = f.name; document.getElementById('ch-file').style.display='inline-flex'; }
+}
+function clearF(type) {
+  if (type === 'scan') { scanF = null; document.getElementById('fi-scan').value=''; document.getElementById('ch-scan').style.display='none'; }
+  else { docF = null; document.getElementById('fi-file').value=''; document.getElementById('ch-file').style.display='none'; }
+}
+function dov(e) { e.preventDefault(); e.currentTarget.classList.add('over'); }
+function dlv(e) { e.currentTarget.classList.remove('over'); }
+function ddrop(e, type) {
+  e.preventDefault(); e.currentTarget.classList.remove('over');
+  const f = e.dataTransfer.files[0]; if (!f) return;
+  fsel({ target: { files: [f] } }, type);
+}
+
+// ── AUDIO ──
+async function toggleRec() {
+  if (!isRec) {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      mediaRecorder = new MediaRecorder(stream);
-      recordChunks = [];
-      mediaRecorder.ondataavailable = e => recordChunks.push(e.data);
-      mediaRecorder.onstop = () => {
-        audioBlob = new Blob(recordChunks, { type: 'audio/webm' });
-        const url = URL.createObjectURL(audioBlob);
-        document.getElementById('audioPlayer').src = url;
-        document.getElementById('audioPreview').style.display = 'block';
+      mr = new MediaRecorder(stream);
+      recChunks = [];
+      mr.ondataavailable = e => recChunks.push(e.data);
+      mr.onstop = () => {
+        audBlob = new Blob(recChunks, { type: 'audio/webm' });
+        const url = URL.createObjectURL(audBlob);
+        document.getElementById('apl').src = url;
+        document.getElementById('ap').style.display = 'block';
         stream.getTracks().forEach(t => t.stop());
       };
-      mediaRecorder.start();
-      isRecording = true;
-      recordSeconds = 0;
-      document.getElementById('recordBtn').classList.add('recording');
-      document.getElementById('recordLabel').textContent = 'Grabando… toca para detener';
-      document.getElementById('recordTimer').style.display = 'block';
-      recordInterval = setInterval(() => {
-        recordSeconds++;
-        const m = Math.floor(recordSeconds / 60);
-        const s = recordSeconds % 60;
-        document.getElementById('recordTimer').textContent = `${m}:${s.toString().padStart(2,'0')}`;
+      mr.start(); isRec = true; recSec = 0;
+      document.getElementById('rb').classList.add('on');
+      document.getElementById('rb').textContent = '⏹️';
+      document.getElementById('rl').textContent = 'Grabando… toca para detener';
+      document.getElementById('rt').style.display = 'block';
+      recInt = setInterval(() => {
+        recSec++;
+        const m = Math.floor(recSec/60), s = recSec%60;
+        document.getElementById('rt').textContent = `${m}:${s.toString().padStart(2,'0')}`;
       }, 1000);
-
-      // swap icon
-      setTimeout(() => { if (typeof lucide !== "undefined") lucide.createIcons(); }, 50);
-    } catch (e) {
-      showError('No se pudo acceder al micrófono. Comprueba los permisos.');
-    }
+    } catch(e) { showErr('No se pudo acceder al micrófono.'); }
   } else {
-    mediaRecorder.stop();
-    isRecording = false;
-    clearInterval(recordInterval);
-    document.getElementById('recordBtn').classList.remove('recording');
-    document.getElementById('recordLabel').textContent = 'Toca para grabar de nuevo';
-    document.getElementById('recordTimer').style.display = 'none';
+    mr.stop(); isRec = false; clearInterval(recInt);
+    document.getElementById('rb').classList.remove('on');
+    document.getElementById('rb').textContent = '🎙️';
+    document.getElementById('rl').textContent = 'Grabación guardada. Toca para grabar de nuevo.';
+    document.getElementById('rt').style.display = 'none';
   }
 }
-
-function audioFileSelected(event) {
-  audioFile = event.target.files[0];
-  if (!audioFile) return;
-  document.getElementById('audioFileName').textContent = audioFile.name;
-  document.getElementById('audioFileChip').style.display = 'inline-flex';
-  if (typeof lucide !== "undefined") lucide.createIcons();
+function asel(e) {
+  audFile = e.target.files[0]; if (!audFile) return;
+  document.getElementById('fn-audio').textContent = audFile.name;
+  document.getElementById('ch-audio').style.display = 'inline-flex';
 }
-function clearAudioFile() {
-  audioFile = null;
-  document.getElementById('audioFileInput').value = '';
-  document.getElementById('audioFileChip').style.display = 'none';
+function clearAudio() {
+  audFile = null;
+  document.getElementById('fi-audio').value = '';
+  document.getElementById('ch-audio').style.display = 'none';
 }
 
-// ─── CONTEXT / BUROCRACIA SELECTORS ──────────────────────────────
-function selectContext(ctx) {
-  selectedContext = ctx;
-  document.querySelectorAll('.context-btn').forEach(b => {
-    b.classList.toggle('active', b.textContent.trim() === ctx);
-  });
-}
+// ── SUBMIT ──
+async function submit() {
+  hideErr();
+  const c = MODS[curMod];
+  let fd = new FormData();
+  let ok = false;
 
-function selectBuroType(t) {
-  selectedBuroType = t;
-  document.querySelectorAll('.buro-btn').forEach(b => {
-    b.classList.toggle('active', b.textContent.trim() === t);
-  });
-}
-
-function swapLangs() {
-  const from = document.getElementById('fromLang');
-  const to = document.getElementById('toLang');
-  if (from.value === 'auto') return;
-  const tmp = from.value;
-  from.value = to.value;
-  to.value = tmp;
-}
-
-// ─── SUBMIT ───────────────────────────────────────────────────────
-async function submitModule() {
-  hideError();
-  const cfg = MODULES[currentModule];
-
-  // Gather input
-  let formData = new FormData();
-  let hasInput = false;
-
-  if (currentTab === 'text') {
-    const text = document.getElementById('mainTextarea').value.trim();
-    if (!text) { showError('Por favor escribe o pega texto antes de continuar.'); return; }
-    formData.append('text', text);
-    hasInput = true;
-  } else if (currentTab === 'scan') {
-    if (!scanFile) { showError('Por favor selecciona o escanea una imagen.'); return; }
-    formData.append('image', scanFile);
-    hasInput = true;
-  } else if (currentTab === 'file') {
-    if (!docFile) { showError('Por favor selecciona un archivo.'); return; }
-    formData.append('file', docFile);
-    hasInput = true;
-  } else if (currentTab === 'audio') {
-    const blob = audioFile || audioBlob;
-    if (!blob) { showError('Por favor graba o sube un audio.'); return; }
-    formData.append('audio', blob instanceof File ? blob : new File([blob], 'recording.webm', { type: 'audio/webm' }));
-    hasInput = true;
+  if (curTab === 'text') {
+    const t = document.getElementById('ta').value.trim();
+    if (!t) { showErr('Escribe o pega texto antes de continuar.'); return; }
+    fd.append('text', t); ok = true;
+  } else if (curTab === 'scan') {
+    if (!scanF) { showErr('Selecciona o escanea una imagen.'); return; }
+    fd.append('image', scanF); ok = true;
+  } else if (curTab === 'file') {
+    if (!docF) { showErr('Selecciona un archivo.'); return; }
+    fd.append('file', docF); ok = true;
+  } else if (curTab === 'audio') {
+    const blob = audFile || audBlob;
+    if (!blob) { showErr('Graba o sube un audio primero.'); return; }
+    fd.append('audio', blob instanceof File ? blob : new File([blob], 'rec.webm', { type: 'audio/webm' }));
+    ok = true;
   }
+  if (!ok) return;
 
-  if (!hasInput) return;
+  if (curMod === 'revision') fd.append('context', ctxSel);
 
-  // Module-specific params
-  if (currentModule === 'traduceme') {
-    formData.append('from', document.getElementById('fromLang')?.value || 'auto');
-    formData.append('to', document.getElementById('toLang')?.value || 'es');
-  }
-  if (currentModule === 'revision') {
-    formData.append('context', selectedContext);
-  }
-  if (currentModule === 'burocracia') {
-    formData.append('docType', selectedBuroType);
-  }
-
-  showLoading();
-
-  // Cycle loading phrases
+  showLoad();
   let pi = 0;
-  const pInterval = setInterval(() => {
-    pi = (pi + 1) % cfg.loadingPhrases.length;
-    const el = document.getElementById('loadingPhrase');
-    el.style.opacity = 0;
-    setTimeout(() => {
-      el.textContent = cfg.loadingPhrases[pi];
-      el.style.opacity = 1;
-    }, 300);
-  }, 2200);
+  const pit = setInterval(() => {
+    pi = (pi+1) % c.phrases.length;
+    const lp = document.getElementById('lp');
+    lp.style.opacity = 0;
+    setTimeout(() => { lp.textContent = c.phrases[pi]; lp.style.opacity = 1; }, 280);
+  }, 2000);
 
   try {
-    // If scan or file tab, first call /scan to extract text, then the module endpoint
-    let endpoint = cfg.endpoint;
-    if (currentTab === 'scan' || currentTab === 'file') {
-      // Call /scan first
-      const scanResp = await fetch(BACKEND + '/scan', { method: 'POST', body: formData });
-      if (!scanResp.ok) throw new Error(`Error al escanear: ${scanResp.status}`);
-      const scanData = await scanResp.json();
-      const extractedText = scanData.text || scanData.extractedText || '';
-      if (!extractedText) throw new Error('No se pudo extraer texto de la imagen/archivo.');
-      // Now build new formData with text
-      formData = new FormData();
-      formData.append('text', extractedText);
-      if (currentModule === 'traduceme') {
-        formData.append('from', document.getElementById('fromLang')?.value || 'auto');
-        formData.append('to', document.getElementById('toLang')?.value || 'es');
-      }
-      if (currentModule === 'revision') formData.append('context', selectedContext);
-      if (currentModule === 'burocracia') formData.append('docType', selectedBuroType);
+    // If image/file, extract text first via /scan
+    if (curTab === 'scan' || curTab === 'file') {
+      const sr = await fetch(API + '/scan', { method: 'POST', body: fd });
+      if (!sr.ok) throw new Error('Error al procesar imagen ('+sr.status+')');
+      const sd = await sr.json();
+      const txt = sd.text || sd.extractedText || '';
+      if (!txt) throw new Error('No se pudo extraer texto.');
+      fd = new FormData();
+      fd.append('text', txt);
+      if (curMod === 'revision') fd.append('context', ctxSel);
     }
 
-    const resp = await fetch(BACKEND + endpoint, { method: 'POST', body: formData });
-    clearInterval(pInterval);
-    if (!resp.ok) throw new Error(`Error del servidor: ${resp.status}`);
-    const data = await resp.json();
-    hideLoading();
-    renderResult(data);
-  } catch (err) {
-    clearInterval(pInterval);
-    hideLoading();
-    showError('Algo ha ido mal: ' + err.message);
-  }
-}
-
-// ─── RENDER RESULTS ───────────────────────────────────────────────
-function renderResult(data) {
-  const area = document.getElementById('resultArea');
-  area.innerHTML = '';
-  area.classList.remove('show');
-
-  if (currentModule === 'traduceme') {
-    traducemeResult = data;
-    currentVersionShown = 'simple';
-    area.innerHTML = `
-      <div class="version-toggle">
-        <button class="version-btn active" id="vbSimple" onclick="showVersion('simple')">Simple</button>
-        <button class="version-btn" id="vbCompleta" onclick="showVersion('completa')">Completa</button>
-      </div>
-      ${resultCard('Traducción', data.simple || data.result || '', 'traduccion')}
-      ${saveBtnHTML()}
-    `;
-  } else if (currentModule === 'burocracia') {
-    area.innerHTML = `
-      <div class="result-card fade-in">
-        <div class="result-card-header">
-          <div class="result-card-title"><div class="dot"></div>Análisis del documento</div>
-          <div class="result-actions">
-            <button class="btn-icon" onclick="copyText('buro-resumen')" title="Copiar"><i data-lucide="copy" width="15" height="15"></i></button>
-          </div>
-        </div>
-        <div class="buro-cols">
-          <div class="buro-col">
-            <div class="buro-col-title">Qué te piden</div>
-            <div class="buro-col-body" id="buro-col1">${escHtml(data.quePiden || data.col1 || '')}</div>
-          </div>
-          <div class="buro-col">
-            <div class="buro-col-title">Cómo responder</div>
-            <div class="buro-col-body" id="buro-col2">${escHtml(data.comoResponder || data.col2 || '')}</div>
-          </div>
-          <div class="buro-col">
-            <div class="buro-col-title">Plazos y consecuencias</div>
-            <div class="buro-col-body" id="buro-col3">${escHtml(data.plazos || data.col3 || '')}</div>
-          </div>
-        </div>
-        <div id="buro-resumen" style="display:none">${escHtml(data.quePiden || '')} ${escHtml(data.comoResponder || '')} ${escHtml(data.plazos || '')}</div>
-      </div>
-      <div class="rights-duties fade-in">
-        <div class="rights-card">
-          <div class="rights-duties-title">Tus derechos</div>
-          <div class="rights-duties-body">${escHtml(data.derechos || data.rights || '')}</div>
-        </div>
-        <div class="duties-card">
-          <div class="rights-duties-title">Tus obligaciones</div>
-          <div class="rights-duties-body">${escHtml(data.obligaciones || data.duties || '')}</div>
-        </div>
-      </div>
-      ${saveBtnHTML()}
-    `;
-  } else if (currentModule === 'apuntes') {
-    area.innerHTML = `
-      ${resultCard('Transcripción', data.transcripcion || data.transcription || data.text || '', 'transcripcion-text')}
-      <div class="result-card fade-in" style="margin-top:0.75rem">
-        <div class="result-card-header">
-          <div class="result-card-title"><div class="dot"></div>Resumen</div>
-          <div class="result-actions">
-            <button class="btn-icon" onclick="copyText('apuntes-resumen')" title="Copiar"><i data-lucide="copy" width="15" height="15"></i></button>
-          </div>
-        </div>
-        <div class="result-card-body">
-          ${renderApuntesResumen(data)}
-        </div>
-      </div>
-      ${saveBtnHTML()}
-    `;
-  } else if (currentModule === 'revision') {
-    area.innerHTML = `
-      ${resultCard('Texto mejorado', data.revision || data.improved || data.result || '', 'revision-text')}
-      ${data.comentarios ? resultCard('Comentarios', data.comentarios, 'revision-comments') : ''}
-      ${saveBtnHTML()}
-    `;
-  }
-
-  area.classList.add('show');
-  setTimeout(() => { if (typeof lucide !== "undefined") lucide.createIcons(); }, 50);
-  area.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-function resultCard(title, text, id) {
-  return `
-    <div class="result-card fade-in">
-      <div class="result-card-header">
-        <div class="result-card-title"><div class="dot"></div>${title}</div>
-        <div class="result-actions">
-          <button class="btn-icon" onclick="copyText('${id}')" title="Copiar"><i data-lucide="copy" width="15" height="15"></i></button>
-        </div>
-      </div>
-      <div class="result-card-body" id="${id}">${escHtml(text)}</div>
-    </div>
-  `;
-}
-
-function saveBtnHTML() {
-  return `<button class="btn-save" onclick="saveCapture()"><i data-lucide="download" width="15" height="15"></i> Guardar imagen</button>`;
-}
-
-function renderApuntesResumen(data) {
-  const r = data.resumen || data.summary || '';
-  if (typeof r === 'string') return escHtml(r);
-  // If structured
-  let html = '';
-  if (r.puntosClave || data.puntosClave) {
-    html += `<div class="apuntes-section-title"><i data-lucide="check-circle" width="14" height="14"></i> Puntos clave</div><div style="margin-bottom:0.75rem">${escHtml(r.puntosClave || data.puntosClave)}</div>`;
-  }
-  if (r.accionables || data.accionables) {
-    html += `<div class="apuntes-section-title"><i data-lucide="zap" width="14" height="14"></i> Accionables</div><div style="margin-bottom:0.75rem">${escHtml(r.accionables || data.accionables)}</div>`;
-  }
-  if (r.temasSinResolver || data.temasSinResolver) {
-    html += `<div class="apuntes-section-title"><i data-lucide="help-circle" width="14" height="14"></i> Temas sin resolver</div><div>${escHtml(r.temasSinResolver || data.temasSinResolver)}</div>`;
-  }
-  return html || escHtml(String(r));
-}
-
-function showVersion(v) {
-  currentVersionShown = v;
-  const el = document.getElementById('traduccion');
-  if (!el || !traducemeResult) return;
-  el.textContent = v === 'simple'
-    ? (traducemeResult.simple || traducemeResult.result || '')
-    : (traducemeResult.completa || traducemeResult.complete || traducemeResult.result || '');
-  document.getElementById('vbSimple').classList.toggle('active', v === 'simple');
-  document.getElementById('vbCompleta').classList.toggle('active', v === 'completa');
-}
-
-// ─── UTILS ────────────────────────────────────────────────────────
-function escHtml(str) {
-  if (!str) return '';
-  return String(str)
-    .replace(/&/g,'&amp;')
-    .replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;')
-    .replace(/\n/g,'<br>');
-}
-
-function copyText(id) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  navigator.clipboard.writeText(el.innerText || el.textContent).then(() => {
-    // brief visual feedback
-    const orig = el.style.background;
-    el.style.background = 'rgba(37,99,235,0.06)';
-    el.style.transition = 'background 0.3s';
-    setTimeout(() => { el.style.background = orig; }, 600);
-  }).catch(() => {});
-}
-
-async function saveCapture() {
-  try {
-    const el = document.getElementById('resultArea');
-    const canvas = await html2canvas(el, { backgroundColor: '#faf8f4', scale: 2 });
-    const a = document.createElement('a');
-    a.download = `lumen-${currentModule}-${Date.now()}.png`;
-    a.href = canvas.toDataURL('image/png');
-    a.click();
+    const r = await fetch(API + c.endpoint, { method: 'POST', body: fd });
+    clearInterval(pit);
+    if (!r.ok) throw new Error('Error del servidor ('+r.status+')');
+    const data = await r.json();
+    hideLoad();
+    renderRes(data);
   } catch(e) {
-    showError('No se pudo guardar la imagen.');
+    clearInterval(pit);
+    hideLoad();
+    showErr('Error: ' + e.message);
   }
 }
 
-// ─── LOADING / ERROR ──────────────────────────────────────────────
-function showLoading() {
-  document.getElementById('submitBtn').disabled = true;
-  const cfg = MODULES[currentModule];
-  document.getElementById('loadingPhrase').textContent = cfg.loadingPhrases[0];
-  document.getElementById('loadingOverlay').classList.add('show');
-  document.getElementById('resultArea').classList.remove('show');
-}
-function hideLoading() {
-  document.getElementById('submitBtn').disabled = false;
-  document.getElementById('loadingOverlay').classList.remove('show');
-}
-function showError(msg) {
-  const el = document.getElementById('errorCard');
-  el.textContent = msg;
-  el.classList.add('show');
-  el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-}
-function hideError() {
-  document.getElementById('errorCard').classList.remove('show');
-}
-function resetResults() {
-  hideError();
-  hideLoading();
-  document.getElementById('resultArea').innerHTML = '';
-  document.getElementById('resultArea').classList.remove('show');
-}
-function resetModuleState() {
-  scanFile = null;
-  docFile = null;
-  audioBlob = null;
-  audioFile = null;
-  if (isRecording) { try { mediaRecorder.stop(); } catch(e){} isRecording = false; }
-  clearInterval(recordInterval);
-  traducemeResult = null;
-}
+// ── RENDER RESULTS ──
+function renderRes(data) {
+  const el = document.getElementById('res');
+  el.innerHTML = '';
+  el.classList.remove('on');
 
-// ─── PEN CLICK & BUBBLES ──────────────────────────────────────────
-function penClick(where) {
-  const phrase = PEN_PHRASES[Math.floor(Math.random() * PEN_PHRASES.length)];
-  const bubbleId = where === 'splash' ? 'splashBubble'
-    : where === 'home' ? 'homeBubble' : 'moduleBubble';
-  const penId = where === 'splash' ? 'splashPen'
-    : where === 'home' ? 'homePen' : null;
-
-  showBubble(bubbleId, phrase);
-
-  // Wiggle animation
-  const penEl = penId ? document.getElementById(penId) : document.querySelector('#moduleBubbleContainer .pen-wrapper');
-  if (penEl) {
-    penEl.querySelector('.pen-body')?.classList.add('pen-animate');
-    setTimeout(() => penEl.querySelector('.pen-body')?.classList.remove('pen-animate'), 700);
+  if (curMod === 'simplificar') {
+    simpResult = data;
+    el.innerHTML = `
+      <div class="vtoggle">
+        <button class="vbtn on" id="vsim" onclick="showV('simple')">Simple</button>
+        <button class="vbtn" id="vcom" onclick="showV('completa')">Completa</button>
+      </div>
+      ${rcard('Versión simplificada', data.simple || data.result || '', 'vtext')}
+      ${savebtn()}`;
+  } else if (curMod === 'burocracia') {
+    el.innerHTML = `
+      <div class="buro-cols">
+        <div class="bcol"><div class="bcol-t">¿Qué te piden?</div><div class="bcol-b">${esc(data.quePiden||data.col1||data.que||'')}</div></div>
+        <div class="bcol"><div class="bcol-t">¿Qué hago?</div><div class="bcol-b">${esc(data.queHago||data.col2||data.como||'')}</div></div>
+        <div class="bcol"><div class="bcol-t">¿Y si no lo hago?</div><div class="bcol-b">${esc(data.siNo||data.col3||data.consecuencias||'')}</div></div>
+      </div>
+      <div class="rd-grid">
+        <div class="rd-card r"><div class="rd-t">Tus derechos</div><div class="rd-b">${esc(data.derechos||data.rights||'')}</div></div>
+        <div class="rd-card d"><div class="rd-t">Tus obligaciones</div><div class="rd-b">${esc(data.obligaciones||data.duties||'')}</div></div>
+      </div>
+      ${savebtn()}`;
+  } else if (curMod === 'apuntes') {
+    el.innerHTML = `
+      ${rcard('Transcripción', data.transcripcion||data.transcription||data.text||'', 'atr')}
+      ${rcard('Puntos clave', data.puntosClave||data.resumen||data.summary||'', 'apk')}
+      ${data.accionables ? rcard('Accionables', data.accionables, 'aac') : ''}
+      ${data.temasSinResolver ? rcard('Temas sin resolver', data.temasSinResolver, 'atr2') : ''}
+      ${savebtn()}`;
+  } else if (curMod === 'revision') {
+    el.innerHTML = `
+      ${rcard('Texto mejorado', data.revision||data.improved||data.result||'', 'rtx')}
+      ${data.comentarios ? rcard('Comentarios', data.comentarios, 'rcm') : ''}
+      ${savebtn()}`;
   }
 
-  if (navigator.vibrate) navigator.vibrate(30);
+  el.classList.add('on');
+  setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
 }
 
-function showBubble(id, text) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.textContent = text;
-  el.classList.add('show');
-  clearTimeout(el._hideTimeout);
-  el._hideTimeout = setTimeout(() => el.classList.remove('show'), 2800);
+function rcard(title, text, id) {
+  return `<div class="res-card">
+    <div class="res-head">
+      <div class="res-label"><div class="res-dot"></div>${title}</div>
+      <button class="btn-copy" onclick="cp('${id}')" title="Copiar">📋</button>
+    </div>
+    <div class="res-body" id="${id}">${esc(text)}</div>
+  </div>`;
 }
 
-// ─── WORD CANVAS ──────────────────────────────────────────────────
-const WORD_POOLS = {
-  default: ['texto','palabra','frase','carta','nota','ideas','lumen','escribe','lee','piensa','entiende','claridad','lengua','voz','boli'],
-  traduceme: ['hello','bonjour','hola','ciao','hallo','こんにちは','مرحبا','привет','你好','hi','olá','ahoj'],
-  burocracia: ['decreto','artículo','expediente','resolución','notificación','plazo','derecho','deber','trámite','registro','código'],
-  apuntes: ['reunión','idea','tarea','acción','resumen','punto','clave','notas','audio','voz','transcripción'],
-  revision: ['tono','registro','estilo','claridad','forma','mensaje','carta','email','mejorar','pulir'],
+function savebtn() {
+  return `<button class="btn-save" onclick="saveImg()">⬇ Guardar imagen</button>`;
+}
+
+function showV(v) {
+  const el = document.getElementById('vtext');
+  if (!el || !simpResult) return;
+  el.innerHTML = esc(v==='simple' ? (simpResult.simple||simpResult.result||'') : (simpResult.completa||simpResult.complete||simpResult.result||''));
+  document.getElementById('vsim').classList.toggle('on', v==='simple');
+  document.getElementById('vcom').classList.toggle('on', v==='completa');
+}
+
+// ── UTILS ──
+function esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+}
+function cp(id) {
+  const el = document.getElementById(id); if (!el) return;
+  navigator.clipboard.writeText(el.innerText||el.textContent).catch(()=>{});
+}
+async function saveImg() {
+  if (typeof html2canvas === 'undefined') { showErr('html2canvas no disponible.'); return; }
+  try {
+    const c = await html2canvas(document.getElementById('res'), { backgroundColor: '#faf8f4', scale: 2 });
+    const a = document.createElement('a');
+    a.download = `lumen-${curMod}-${Date.now()}.png`;
+    a.href = c.toDataURL('image/png'); a.click();
+  } catch(e) { showErr('No se pudo guardar.'); }
+}
+
+function showLoad() {
+  document.getElementById('bg').disabled = true;
+  const c = MODS[curMod];
+  document.getElementById('lp').textContent = c.phrases[0];
+  document.getElementById('ld').classList.add('on');
+  document.getElementById('res').classList.remove('on');
+}
+function hideLoad() {
+  document.getElementById('bg').disabled = false;
+  document.getElementById('ld').classList.remove('on');
+}
+function showErr(msg) {
+  const el = document.getElementById('er'); el.textContent = msg; el.classList.add('on');
+}
+function hideErr() { document.getElementById('er').classList.remove('on'); }
+function clearResults() {
+  hideErr(); hideLoad();
+  const r = document.getElementById('res'); r.innerHTML = ''; r.classList.remove('on');
+}
+function resetMod() {
+  scanF = null; docF = null; audBlob = null; audFile = null;
+  if (isRec) { try { mr.stop(); } catch(e){} isRec = false; }
+  clearInterval(recInt); simpResult = null;
+}
+
+// ── PEN CLICK ──
+function penClick(penId, bubId) {
+  const phrase = PHRASES[Math.floor(Math.random()*PHRASES.length)];
+  const b = document.getElementById(bubId);
+  b.textContent = phrase; b.classList.add('show');
+  clearTimeout(b._t); b._t = setTimeout(() => b.classList.remove('show'), 2500);
+  const pen = document.getElementById(penId);
+  pen.style.transition = 'transform 0.1s'; pen.style.transform = 'rotate(-10deg) scale(1.08)';
+  setTimeout(() => { pen.style.transform = ''; }, 350);
+  if (navigator.vibrate) navigator.vibrate(25);
+}
+
+// ── WORD CANVAS ──
+const WPOOL = {
+  default: ['texto','palabra','frase','nota','ideas','lumen','escribe','lee','piensa','entiende','claridad','boli'],
+  simplificar: ['simple','claro','fácil','entender','adaptar','vocabulario','lenguaje','sentido','básico','comprensible'],
+  burocracia: ['artículo','decreto','resolución','notificación','plazo','derecho','deber','trámite','expediente','código'],
+  apuntes: ['reunión','idea','tarea','resumen','clave','notas','audio','voz','acción','punto','grabar'],
+  revision: ['tono','estilo','claridad','mensaje','carta','email','mejorar','pulir','registro','redactar'],
 };
 
-let words = [];
-const MAX_WORDS = 18;
+let ws = [];
+function startCanvas() {
+  const cv = document.getElementById('wc');
+  const cx = cv.getContext('2d');
+  function rs() { cv.width = innerWidth; cv.height = innerHeight; }
+  rs(); addEventListener('resize', rs);
 
-function startWordCanvas() {
-  const canvas = document.getElementById('wordCanvas');
-  const ctx = canvas.getContext('2d');
-
-  function resize() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+  function pool() { return WPOOL[curMod] || WPOOL.default; }
+  function spawn() {
+    const p = pool(), w = p[Math.floor(Math.random()*p.length)];
+    ws.push({ t: w, x: 60+Math.random()*(cv.width-80), y: 20+Math.random()*(cv.height-30),
+      sz: 10+Math.random()*9, a: 0, ph: 'in', life: 0, max: 160+Math.random()*120 });
   }
-  resize();
-  window.addEventListener('resize', resize);
-
-  function getPool() {
-    if (!currentModule) return WORD_POOLS.default;
-    return WORD_POOLS[currentModule] || WORD_POOLS.default;
-  }
-
-  function spawnWord() {
-    const pool = getPool();
-    const w = pool[Math.floor(Math.random() * pool.length)];
-    words.push({
-      text: w,
-      x: Math.random() * (canvas.width - 80) + 40,
-      y: Math.random() * (canvas.height - 40) + 20,
-      size: 11 + Math.random() * 10,
-      alpha: 0,
-      phase: 'in',
-      life: 0,
-      maxLife: 180 + Math.random() * 120,
-    });
-  }
-
-  setInterval(spawnWord, 800);
-
+  setInterval(spawn, 900);
   function tick() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    words = words.filter(w => !(w.phase === 'dead'));
-
-    for (const w of words) {
+    cx.clearRect(0,0,cv.width,cv.height);
+    ws = ws.filter(w => w.ph !== 'dead');
+    for (const w of ws) {
       w.life++;
-      if (w.phase === 'in') {
-        w.alpha = Math.min(1, w.life / 30);
-        if (w.alpha >= 1) w.phase = 'hold';
-      } else if (w.phase === 'hold') {
-        if (w.life >= w.maxLife) w.phase = 'out';
-      } else if (w.phase === 'out') {
-        w.alpha = Math.max(0, w.alpha - 0.025);
-        if (w.alpha <= 0) w.phase = 'dead';
-      }
-
-      ctx.save();
-      ctx.globalAlpha = w.alpha;
-      ctx.font = `italic ${w.size}px Georgia, serif`;
-      ctx.fillStyle = '#1a1714';
-      ctx.fillText(w.text, w.x, w.y);
-      ctx.restore();
+      if (w.ph==='in')   { w.a = Math.min(1, w.life/28); if (w.a>=1) w.ph='hold'; }
+      else if (w.ph==='hold') { if (w.life>=w.max) w.ph='out'; }
+      else if (w.ph==='out')  { w.a -= 0.022; if (w.a<=0) w.ph='dead'; }
+      cx.save(); cx.globalAlpha=w.a;
+      cx.font=`italic ${w.sz}px Georgia,serif`;
+      cx.fillStyle='#1a1714'; cx.fillText(w.t,w.x,w.y);
+      cx.restore();
     }
-
-    if (words.length < MAX_WORDS) spawnWord();
+    if (ws.length < 16) spawn();
     requestAnimationFrame(tick);
   }
   tick();
 }
 </script>
+
+<!-- html2canvas lazy loaded -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
 </body>
 </html>
