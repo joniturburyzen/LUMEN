@@ -1315,6 +1315,8 @@ window.addEventListener('load', () => {
   lucide.createIcons();
   startWordCanvas();
   startSplash();
+  // Wake up backend (non-blocking)
+  fetch(BACKEND + '/').catch(() => {});
 });
 
 // ─── SPLASH ───────────────────────────────────────────────────────
