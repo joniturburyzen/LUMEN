@@ -11,7 +11,9 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
 <title>Lumen</title>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Lato:wght@300;400;700&family=Lexend:wght@300;400;500;600;700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -21,12 +23,11 @@
   --ink-light: #6b6560;
   --ink-faint: #b0a898;
   --line: #e0d8cc;
-  --line-spacing: 32px;
   --radius: 14px;
   --shadow: 0 2px 16px rgba(0,0,0,0.07), 0 1px 3px rgba(0,0,0,0.05);
   --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
-  --blue:   #2563eb; --blue-bg: #eff6ff;
-  --green:  #16a34a; --green-bg: #f0fdf4;
+  --blue:   #2563eb; --blue-bg:   #eff6ff;
+  --green:  #16a34a; --green-bg:  #f0fdf4;
   --orange: #ea580c; --orange-bg: #fff7ed;
   --violet: #7c3aed; --violet-bg: #f5f3ff;
   --mod: var(--blue);
@@ -43,33 +44,17 @@ body {
 }
 
 /* ── WORD CANVAS ── */
-#wc {
-  position: fixed; inset: 0;
-  pointer-events: none; z-index: 1;
-}
+#wc { position: fixed; inset: 0; pointer-events: none; z-index: 1; }
 
 /* ── SCREENS ── */
 .screen {
-  position: fixed; inset: 0;
-  z-index: 10;
+  position: fixed; inset: 0; z-index: 10;
   display: flex; flex-direction: column;
-  background: transparent;
-  overflow-y: auto;
+  background: transparent; overflow-y: auto;
   transition: opacity 0.3s ease, transform 0.3s ease;
 }
-.screen.hidden {
-  opacity: 0;
-  pointer-events: none;
-  transform: translateX(24px);
-}
+.screen.hidden { opacity: 0; pointer-events: none; transform: translateX(24px); }
 .screen.slide-back { transform: translateX(-24px); }
-
-/* ── PEN SVG ── */
-.pen { display: inline-block; cursor: pointer; filter: drop-shadow(0 3px 8px rgba(0,0,0,0.18)); }
-.pen:active { transform: scale(0.93) rotate(-5deg); }
-.pen svg { display: block; }
-.pen-lg svg { width: 80px; height: 80px; }
-.pen-sm svg { width: 40px; height: 40px; }
 
 /* ── BUBBLE ── */
 .bubble-wrap { position: relative; display: inline-block; }
@@ -81,8 +66,7 @@ body {
   padding: 6px 12px; border-radius: 10px;
   font-size: 0.78rem; font-style: italic;
   white-space: nowrap; pointer-events: none;
-  opacity: 0; transition: opacity 0.2s, transform 0.2s;
-  z-index: 200;
+  opacity: 0; transition: opacity 0.2s, transform 0.2s; z-index: 200;
 }
 .bubble::after {
   content: ''; position: absolute;
@@ -90,44 +74,58 @@ body {
   border: 5px solid transparent; border-top-color: var(--ink);
 }
 .bubble.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-/* small pen bubble goes down */
-.pen-sm-wrap .bubble {
-  bottom: auto; top: calc(100% + 10px);
+.pen-sm-wrap .bubble { bottom: auto; top: calc(100% + 10px); }
+.pen-sm-wrap .bubble::after { top: auto; bottom: 100%; border-top-color: transparent; border-bottom-color: var(--ink); }
+
+/* ── PEN ── */
+.pen { display: inline-block; cursor: pointer; filter: drop-shadow(0 3px 8px rgba(0,0,0,0.18)); }
+.pen:active { transform: scale(0.93) rotate(-5deg); }
+.pen svg { display: block; }
+.pen-lg svg { width: 80px; height: 80px; }
+.pen-sm svg { width: 40px; height: 40px; }
+
+/* ══ METALLIC TEXT ══ */
+.metallic-text {
+  font-family: 'Cinzel', Georgia, serif;
+  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #172554 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 2px 4px rgba(59,130,246,0.2));
 }
-.pen-sm-wrap .bubble::after {
-  top: auto; bottom: 100%;
-  border-top-color: transparent; border-bottom-color: var(--ink);
+
+/* ── Float animation ── */
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%       { transform: translateY(-15px) rotate(2deg); }
 }
+.float-anim { animation: float 6s ease-in-out infinite; }
 
 /* ══════════════════════════════
    SPLASH
 ══════════════════════════════ */
-#splash {
-  align-items: center; justify-content: center;
-  text-align: center; padding: 2rem;
-}
+#splash { align-items: center; justify-content: center; text-align: center; padding: 2rem; }
+
 .splash-logo {
-  font-size: clamp(3rem, 12vw, 5.5rem);
-  font-weight: normal; letter-spacing: -0.02em;
-  margin-top: 1.2rem;
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: clamp(3rem, 14vw, 5.5rem);
+  font-weight: 700; letter-spacing: 0.15em;
+  margin-top: 1.5rem;
   animation: fadeUp 0.6s 0.3s ease both;
 }
 .splash-sub {
-  font-style: italic; color: var(--ink-light);
-  font-size: 1rem; margin-top: 0.3rem;
+  font-family: 'Lato', sans-serif;
+  font-style: normal; color: #4a6fa5;
+  font-size: 0.8rem; margin-top: 0.5rem;
+  letter-spacing: 0.3em; text-transform: uppercase;
   animation: fadeUp 0.6s 0.6s ease both;
 }
 .splash-phrase {
   font-style: italic; color: var(--ink-light);
-  font-size: 0.9rem; margin-top: 2rem;
-  min-height: 1.4rem;
-  animation: fadeUp 0.5s 1s ease both;
-  transition: opacity 0.3s;
+  font-size: 0.9rem; margin-top: 2rem; min-height: 1.4rem;
+  animation: fadeUp 0.5s 1s ease both; transition: opacity 0.3s;
 }
-.dots span {
-  display: inline-block;
-  animation: dot 1.2s ease infinite;
-}
+.dots span { display: inline-block; animation: dot 1.2s ease infinite; }
 .dots span:nth-child(2) { animation-delay: 0.2s; }
 .dots span:nth-child(3) { animation-delay: 0.4s; }
 @keyframes dot {
@@ -138,57 +136,87 @@ body {
 /* ══════════════════════════════
    HOME
 ══════════════════════════════ */
-#home { padding: 0 0 3rem; }
+#home { padding: 0; overflow-y: auto; }
+
 .home-head {
-  padding: 2.5rem 1.5rem 0.5rem;
+  padding: 2.8rem 1.5rem 1rem;
   display: flex; flex-direction: column;
   align-items: center; text-align: center;
 }
 .home-logo {
-  font-size: clamp(2rem, 7vw, 3rem);
-  font-weight: normal; margin-top: 0.6rem;
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: clamp(2.5rem, 10vw, 4rem);
+  font-weight: 700; letter-spacing: 0.12em;
 }
 .home-tag {
-  font-style: italic; color: var(--ink-light);
-  font-size: 0.9rem; margin-top: 0.2rem;
+  font-family: 'Lato', sans-serif;
+  font-style: normal; color: #4a6fa5;
+  font-size: 0.72rem; margin-top: 0.45rem;
+  letter-spacing: 0.3em; text-transform: uppercase;
 }
+
+/* Cards */
 .grid {
   display: grid; grid-template-columns: 1fr 1fr;
-  gap: 0.9rem; padding: 1.5rem 1.1rem;
+  gap: 1rem; padding: 1rem 1.1rem;
   max-width: 560px; margin: 0 auto; width: 100%;
 }
 .card {
-  background: rgba(255,255,255,0.92); border-radius: var(--radius);
-  padding: 1.3rem 1.1rem;
-  cursor: pointer; position: relative;
-  box-shadow: var(--shadow);
+  background: rgba(255,255,255,0.92); border-radius: 1rem;
+  padding: 1.2rem; cursor: pointer;
+  height: 9rem;
+  display: flex; flex-direction: column; justify-content: space-between;
+  box-shadow: 0 20px 25px -5px rgba(0,0,0,0.08), 0 10px 10px -5px rgba(0,0,0,0.03);
   border: 2px solid var(--c);
   transition: transform 0.18s, box-shadow 0.18s;
   -webkit-tap-highlight-color: transparent;
-  overflow: hidden;
   backdrop-filter: blur(8px);
 }
-.card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+.card:hover  { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
 .card:active { transform: scale(0.97); }
-.card[data-m="simplificar"] { --c: var(--blue); }
-.card[data-m="burocracia"]  { --c: var(--green); }
-.card[data-m="apuntes"]     { --c: var(--orange); }
-.card[data-m="revision"]    { --c: var(--violet); }
+.card[data-m="simplificar"] { --c: #0ea5e9; }
+.card[data-m="burocracia"]  { --c: #ef4444; }
+.card[data-m="apuntes"]     { --c: #22c55e; }
+.card[data-m="revision"]    { --c: #a855f7; }
 .card-icon {
-  width: 36px; height: 36px; border-radius: 10px;
+  width: 2.4rem; height: 2.4rem; border-radius: 0.6rem;
   background: color-mix(in srgb, var(--c) 13%, transparent);
   color: var(--c);
   display: flex; align-items: center; justify-content: center;
-  margin-bottom: 0.7rem; font-size: 1.3rem;
 }
-.card-icon .material-symbols-outlined { font-size: 1.3rem; }
-.card-name { font-size: 1rem; font-weight: normal; color: var(--ink); }
-.card-desc { font-size: 0.75rem; color: var(--ink-light); margin-top: 0.25rem; font-style: italic; }
+.card-icon .material-symbols-outlined { font-size: 1.4rem; }
+.card-name {
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 0.95rem; font-weight: 700;
+  color: var(--ink); letter-spacing: 0.05em;
+}
+.card-desc {
+  font-family: 'Lato', sans-serif;
+  font-size: 0.58rem; color: var(--ink-light);
+  margin-top: 0.2rem; text-transform: uppercase; letter-spacing: 0.1em;
+}
+
+/* Bottom feathers */
+.feathers-wrapper {
+  position: relative; height: 160px; width: 100%;
+  overflow: hidden;
+  display: flex; justify-content: center; align-items: flex-end;
+  pointer-events: none; margin-top: auto;
+}
+.feather-float {
+  position: absolute; bottom: 0;
+  filter: drop-shadow(4px 8px 12px rgba(0,0,0,0.2));
+}
 
 /* ══════════════════════════════
    MODULE SCREEN
 ══════════════════════════════ */
-#mod { padding-bottom: 3rem; }
+#mod { padding-bottom: 3rem; transition: background-color 0.3s; }
+#mod[data-mod="simplificar"] { background-color: #f8fafc; }
+#mod[data-mod="burocracia"]  { background-color: #f8fafb; }
+#mod[data-mod="apuntes"]     { background-color: #fdf8f8; }
+#mod[data-mod="revision"]    { background-color: #ede9fe; }
+
 .mod-head {
   display: flex; align-items: center; gap: 0.6rem;
   padding: 1rem 1rem 0.8rem;
@@ -198,44 +226,56 @@ body {
   border-bottom: 1px solid rgba(186,230,253,0.4);
   z-index: 50;
 }
+#mod[data-mod="apuntes"]  .mod-head { background: rgba(253,248,248,0.93); border-bottom-color: rgba(252,165,165,0.3); }
+#mod[data-mod="revision"] .mod-head { background: rgba(237,233,254,0.93); border-bottom-color: rgba(196,181,253,0.3); }
+
 .btn-back {
   background: none; border: none; cursor: pointer;
-  color: var(--ink-light); padding: 6px;
-  border-radius: 8px; display: flex;
-  transition: color 0.15s, background 0.15s;
+  color: var(--ink-light); padding: 6px; border-radius: 8px;
+  display: flex; transition: color 0.15s, background 0.15s;
   -webkit-tap-highlight-color: transparent;
   flex-shrink: 0; font-size: 1.3rem; line-height: 1;
 }
 .btn-back:hover { color: var(--ink); background: var(--line); }
 .mod-title-wrap { flex: 1; }
-.mod-title {
-  font-size: 1.2rem; font-weight: normal;
-  color: var(--ink);
-}
-.mod-sub { font-size: 0.72rem; color: var(--ink-faint); font-style: italic; }
+.mod-title { font-size: 1.2rem; font-weight: normal; color: var(--ink); }
+.mod-sub   { font-size: 0.72rem; color: var(--ink-faint); font-style: italic; }
 .pen-sm-wrap { position: relative; }
-.mod-body { padding: 1.1rem; max-width: 640px; margin: 0 auto; width: 100%; }
+.mod-body  { padding: 1.1rem; max-width: 640px; margin: 0 auto; width: 100%; }
 
-/* ── Input tabs ── */
-.tabs {
-  display: flex; background: transparent;
-  gap: 0.5rem; margin-bottom: 1.1rem;
-}
+/* ── Tabs ── */
+.tabs { display: flex; background: transparent; gap: 0.5rem; margin-bottom: 1.1rem; }
 .tab {
   flex: 1; background: white; border: 1.5px solid #e2e8f0; cursor: pointer;
   padding: 0.65rem 0.2rem; border-radius: 999px;
-  font-family: Georgia, serif; font-size: 0.65rem;
+  font-family: 'Lexend', sans-serif; font-size: 0.6rem;
   color: var(--ink-light);
-  display: flex; flex-direction: column;
-  align-items: center; gap: 4px;
-  transition: all 0.18s;
-  -webkit-tap-highlight-color: transparent;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  transition: all 0.18s; -webkit-tap-highlight-color: transparent;
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
-.tab .ti { font-size: 1rem; line-height: 1; }
 .tab .material-symbols-outlined { font-size: 1.3rem; line-height: 1; }
 .tab.on { background: var(--mod); color: white; border-color: var(--mod); box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
 .tab:hover:not(.on) { border-color: var(--mod); color: var(--ink); }
+
+/* Per-module tab shapes */
+#mod[data-mod="revision"] .tab { border-radius: 0.75rem; }
+
+/* Per-module tab icons */
+.tab-icon-buro, .tab-icon-other { display: none; }
+.tab-text-other { display: none; }
+#mod[data-mod="burocracia"] .tab-icon-default { display: none; }
+#mod[data-mod="burocracia"] .tab-icon-buro    { display: inline; }
+#mod[data-mod="apuntes"]    .tab-icon-default { display: none; }
+#mod[data-mod="apuntes"]    .tab-icon-other   { display: inline; }
+#mod[data-mod="revision"]   .tab-icon-default { display: none; }
+#mod[data-mod="revision"]   .tab-icon-other   { display: inline; }
+#mod[data-mod="burocracia"] .tab-text-default { display: none; }
+#mod[data-mod="burocracia"] .tab-text-other   { display: inline; }
+#mod[data-mod="apuntes"]    .tab-text-default { display: none; }
+#mod[data-mod="apuntes"]    .tab-text-other   { display: inline; }
+#mod[data-mod="revision"]   .tab-text-default { display: none; }
+#mod[data-mod="revision"]   .tab-text-other   { display: inline; }
 
 /* ── Panels ── */
 .panel { display: none; }
@@ -253,16 +293,99 @@ body {
 .drop p { font-size: 0.82rem; color: var(--ink-light); font-style: italic; }
 .drop small { font-size: 0.72rem; color: var(--ink-faint); }
 
+/* ── Text panel chrome ── */
+.buro-chrome {
+  display: none; align-items: center; gap: 0.5rem;
+  background: #f8fafb; border: 1.5px solid #e2e8f0;
+  border-radius: var(--radius) var(--radius) 0 0;
+  padding: 0.5rem 0.8rem; border-bottom: none;
+}
+#mod[data-mod="burocracia"] .buro-chrome { display: flex; }
+.buro-chrome-dot   { width: 7px; height: 7px; border-radius: 50%; background: #10b981; }
+.buro-chrome-label { font-size: 0.6rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #10b981; }
+.buro-chrome-date  { margin-left: auto; font-size: 0.65rem; color: var(--ink-faint); }
+
+.rev-chrome {
+  display: none; align-items: center; gap: 0.5rem;
+  background: #f8f5ff; border: 1.5px solid #e9d5ff;
+  border-radius: var(--radius) var(--radius) 0 0;
+  padding: 0.5rem 0.8rem; border-bottom: none;
+}
+#mod[data-mod="revision"] .rev-chrome { display: flex; }
+.mac-dots { display: flex; gap: 5px; }
+.mac-dot  { width: 10px; height: 10px; border-radius: 50%; }
+.mac-dot.red   { background: #fc6b68; }
+.mac-dot.amber { background: #fdbd41; }
+.mac-dot.green { background: #33ca50; }
+.rev-mode-label { margin-left: auto; font-size: 0.6rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #a78bfa; }
+
+/* ── Textarea wrapper ── */
+.ta-wrap { position: relative; }
+.buro-chrome + .ta-wrap textarea.lta,
+.rev-chrome  + .ta-wrap textarea.lta {
+  border-top-left-radius: 0; border-top-right-radius: 0; border-top: none;
+}
+
 textarea.lta {
   width: 100%; border: 1.5px solid var(--line);
   border-radius: var(--radius); padding: 0.9rem;
   font-family: Georgia, serif; font-size: 0.95rem;
   color: var(--ink); background: white;
-  resize: vertical; min-height: 130px;
-  outline: none; line-height: 1.7;
-  transition: border-color 0.2s;
+  resize: vertical; min-height: 160px;
+  outline: none; line-height: 1.7; transition: border-color 0.2s;
 }
 textarea.lta:focus { border-color: var(--mod); }
+
+/* Per-module notebook lines */
+#mod[data-mod="simplificar"] textarea.lta {
+  background-image: repeating-linear-gradient(transparent, transparent 31px, #bfdbfe 31px, #bfdbfe 32px);
+  background-attachment: local; line-height: 32px; padding-top: 8px; min-height: 200px;
+}
+#mod[data-mod="burocracia"] .ta-wrap::before {
+  content: ''; position: absolute;
+  left: 38px; top: 0; bottom: 0; width: 1.5px;
+  background: rgba(252,165,165,0.65); z-index: 1; pointer-events: none;
+}
+#mod[data-mod="burocracia"] textarea.lta {
+  background-image: repeating-linear-gradient(transparent, transparent 31px, #e2e8f0 31px, #e2e8f0 32px);
+  background-attachment: local; line-height: 32px;
+  padding-top: 8px; padding-left: 2.8rem; min-height: 200px;
+}
+#mod[data-mod="apuntes"] textarea.lta {
+  background-image: repeating-linear-gradient(transparent, transparent 31px, #ffcccb 31px, #ffcccb 32px);
+  background-attachment: local; line-height: 32px; padding-top: 8px; min-height: 200px;
+}
+#mod[data-mod="revision"] textarea.lta {
+  background: white; border-color: #e9d5ff; min-height: 200px;
+}
+#mod[data-mod="revision"] textarea.lta:focus { border-color: #a78bfa; }
+
+/* Paste button (Revisión) */
+.rev-paste-btn {
+  display: none; position: absolute; bottom: 0.7rem; right: 0.7rem;
+  width: 2.5rem; height: 2.5rem; border-radius: 50%;
+  background: white; border: 1px solid #e9d5ff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  cursor: pointer; color: #a78bfa;
+  align-items: center; justify-content: center;
+  transition: color 0.15s; -webkit-tap-highlight-color: transparent;
+}
+.rev-paste-btn .material-symbols-outlined { font-size: 1.2rem; }
+.rev-paste-btn:hover { color: #7c3aed; }
+#mod[data-mod="revision"] .rev-paste-btn { display: flex; }
+
+/* Status bar (Simplificar) */
+.simp-status {
+  display: none; align-items: center; gap: 0.4rem;
+  margin-top: 0.5rem;
+  font-family: 'Lexend', sans-serif; font-size: 0.75rem; color: var(--ink-light);
+}
+.simp-status .status-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #10b981; animation: statusPulse 2s ease infinite;
+}
+@keyframes statusPulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+#mod[data-mod="simplificar"] .simp-status { display: flex; }
 
 .chip {
   display: inline-flex; align-items: center; gap: 0.4rem;
@@ -277,11 +400,7 @@ textarea.lta:focus { border-color: var(--mod); }
 }
 
 /* Audio */
-.audio-box {
-  background: white; border-radius: var(--radius);
-  padding: 1.5rem; text-align: center;
-  box-shadow: var(--shadow);
-}
+.audio-box { background: white; border-radius: var(--radius); padding: 1.5rem; text-align: center; box-shadow: var(--shadow); }
 .rec-btn {
   width: 68px; height: 68px; border-radius: 50%; border: none;
   background: var(--mod); color: white; cursor: pointer;
@@ -292,38 +411,24 @@ textarea.lta:focus { border-color: var(--mod); }
   margin-bottom: 0.6rem;
 }
 .rec-btn:hover { transform: scale(1.06); }
-.rec-btn.on {
-  background: #dc2626;
-  animation: pulse 1.2s ease infinite;
-  box-shadow: 0 4px 18px rgba(220,38,38,0.4);
-}
-@keyframes pulse {
-  0%,100% { transform: scale(1); }
-  50% { transform: scale(1.07); }
-}
-.rec-lbl { font-size: 0.8rem; color: var(--ink-light); font-style: italic; }
+.rec-btn.on { background: #dc2626; animation: pulse 1.2s ease infinite; box-shadow: 0 4px 18px rgba(220,38,38,0.4); }
+@keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.07); } }
+.rec-lbl   { font-size: 0.8rem; color: var(--ink-light); font-style: italic; }
 .rec-timer { font-size: 1.2rem; color: var(--ink); margin: 0.3rem 0; display: none; }
 .audio-prev { margin-top: 0.9rem; display: none; }
 .audio-prev audio { width: 100%; }
 .audio-file-drop { margin-top: 0.9rem; }
 .audio-file-drop .drop { padding: 1.2rem; }
 
-/* Module extras */
-.field-lbl {
-  font-size: 0.72rem; letter-spacing: 0.05em;
-  text-transform: uppercase; color: var(--ink-light);
-  margin-bottom: 0.35rem; display: block;
-}
+/* Extras */
+.field-lbl { font-size: 0.72rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-light); margin-bottom: 0.35rem; display: block; }
 .ctx-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.45rem; margin-bottom: 1rem; }
 .ctx-btn {
-  border: 1.5px solid var(--line); background: white;
-  border-radius: 10px; padding: 0.55rem 0.4rem;
-  cursor: pointer; font-family: Georgia, serif;
-  font-size: 0.8rem; color: var(--ink-light);
-  display: flex; align-items: center; gap: 0.35rem;
-  justify-content: center;
-  transition: all 0.18s;
-  -webkit-tap-highlight-color: transparent;
+  border: 1.5px solid var(--line); background: white; border-radius: 10px;
+  padding: 0.55rem 0.4rem; cursor: pointer;
+  font-family: Georgia, serif; font-size: 0.8rem; color: var(--ink-light);
+  display: flex; align-items: center; gap: 0.35rem; justify-content: center;
+  transition: all 0.18s; -webkit-tap-highlight-color: transparent;
 }
 .ctx-btn.on { border-color: var(--mod); background: var(--mod-bg); color: var(--mod); }
 
@@ -331,7 +436,7 @@ textarea.lta:focus { border-color: var(--mod); }
 .btn-go {
   width: 100%; background: var(--mod); color: white;
   border: none; border-radius: 999px;
-  padding: 0.95rem; font-family: Georgia, serif;
+  padding: 0.95rem; font-family: 'Lexend', sans-serif;
   font-size: 1rem; cursor: pointer;
   display: flex; align-items: center; justify-content: center; gap: 0.5rem;
   margin-top: 1.1rem;
@@ -339,105 +444,45 @@ textarea.lta:focus { border-color: var(--mod); }
   box-shadow: 0 4px 14px color-mix(in srgb, var(--mod) 30%, transparent);
   -webkit-tap-highlight-color: transparent;
 }
-.btn-go:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 22px color-mix(in srgb, var(--mod) 40%, transparent);
-}
+.btn-go:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 22px color-mix(in srgb, var(--mod) 40%, transparent); }
 .btn-go:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
 
 /* Error */
-.err {
-  background: #fef2f2; border: 1.5px solid #fca5a5;
-  border-radius: var(--radius); padding: 0.9rem 1.1rem;
-  color: #991b1b; font-size: 0.85rem;
-  display: none; margin-top: 0.9rem;
-}
+.err { background: #fef2f2; border: 1.5px solid #fca5a5; border-radius: var(--radius); padding: 0.9rem 1.1rem; color: #991b1b; font-size: 0.85rem; display: none; margin-top: 0.9rem; }
 .err.on { display: block; }
 
 /* Loading */
-.loading {
-  display: none; flex-direction: column;
-  align-items: center; justify-content: center;
-  padding: 2.5rem 1rem; text-align: center;
-}
+.loading { display: none; flex-direction: column; align-items: center; justify-content: center; padding: 2.5rem 1rem; text-align: center; }
 .loading.on { display: flex; }
 .ld-pen { animation: bob 0.65s ease infinite alternate; }
-@keyframes bob {
-  from { transform: translateY(0) rotate(-4deg); }
-  to   { transform: translateY(-14px) rotate(4deg); }
-}
-.ld-phrase {
-  font-style: italic; font-size: 0.95rem;
-  color: var(--ink-light); margin-top: 1.2rem;
-  min-height: 1.4rem; transition: opacity 0.35s;
-}
+@keyframes bob { from { transform: translateY(0) rotate(-4deg); } to { transform: translateY(-14px) rotate(4deg); } }
+.ld-phrase { font-style: italic; font-size: 0.95rem; color: var(--ink-light); margin-top: 1.2rem; min-height: 1.4rem; transition: opacity 0.35s; }
 .ld-dots { display: flex; gap: 5px; margin-top: 0.6rem; justify-content: center; }
-.ld-dots span {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: var(--mod); animation: dot 1.2s ease infinite;
-}
+.ld-dots span { width: 6px; height: 6px; border-radius: 50%; background: var(--mod); animation: dot 1.2s ease infinite; }
 .ld-dots span:nth-child(2) { animation-delay: 0.2s; }
 .ld-dots span:nth-child(3) { animation-delay: 0.4s; }
 
 /* Results */
 .results { display: none; margin-top: 1.3rem; }
 .results.on { display: block; animation: fadeUp 0.4s ease; }
-
-.res-card {
-  background: white; border-radius: var(--radius);
-  box-shadow: var(--shadow); overflow: hidden;
-  margin-bottom: 0.9rem;
-}
-.res-head {
-  padding: 0.8rem 1.1rem;
-  display: flex; align-items: center; justify-content: space-between;
-  border-bottom: 1px solid var(--line);
-}
-.res-label {
-  font-size: 0.72rem; letter-spacing: 0.06em;
-  text-transform: uppercase; color: var(--ink-light);
-  display: flex; align-items: center; gap: 0.35rem;
-}
+.res-card { background: white; border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; margin-bottom: 0.9rem; }
+.res-head { padding: 0.8rem 1.1rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); }
+.res-label { font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-light); display: flex; align-items: center; gap: 0.35rem; }
 .res-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--mod); }
-.res-body {
-  padding: 1.1rem; font-size: 0.92rem;
-  line-height: 1.75; color: var(--ink);
-  white-space: pre-wrap; word-break: break-word;
-}
-.btn-copy {
-  background: none; border: none; cursor: pointer;
-  color: var(--ink-faint); padding: 4px; border-radius: 6px;
-  font-size: 0.85rem; display: flex;
-  transition: color 0.15s, background 0.15s;
-}
+.res-body { padding: 1.1rem; font-size: 0.92rem; line-height: 1.75; color: var(--ink); white-space: pre-wrap; word-break: break-word; }
+.btn-copy { background: none; border: none; cursor: pointer; color: var(--ink-faint); padding: 4px; border-radius: 6px; font-size: 0.85rem; display: flex; transition: color 0.15s, background 0.15s; }
 .btn-copy:hover { color: var(--ink); background: var(--line); }
 
-/* Version toggle (Simplificar) */
-.vtoggle {
-  display: flex; background: var(--line);
-  border-radius: 10px; padding: 3px; gap: 2px; margin-bottom: 0.9rem;
-}
-.vbtn {
-  flex: 1; background: none; border: none; cursor: pointer;
-  padding: 0.5rem; border-radius: 8px;
-  font-family: Georgia, serif; font-size: 0.85rem;
-  color: var(--ink-light); transition: all 0.18s;
-}
+/* Simplificar version toggle */
+.vtoggle { display: flex; background: var(--line); border-radius: 10px; padding: 3px; gap: 2px; margin-bottom: 0.9rem; }
+.vbtn { flex: 1; background: none; border: none; cursor: pointer; padding: 0.5rem; border-radius: 8px; font-family: Georgia, serif; font-size: 0.85rem; color: var(--ink-light); transition: all 0.18s; }
 .vbtn.on { background: white; color: var(--mod); box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
 
 /* Burocracia 3 cols */
-.buro-cols {
-  display: grid; grid-template-columns: 1fr 1fr 1fr;
-  gap: 1px; background: var(--line);
-  border-radius: var(--radius); overflow: hidden; margin-bottom: 0.9rem;
-}
+.buro-cols { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1px; background: var(--line); border-radius: var(--radius); overflow: hidden; margin-bottom: 0.9rem; }
 @media (max-width: 420px) { .buro-cols { grid-template-columns: 1fr; } }
 .bcol { background: white; padding: 0.9rem; }
-.bcol-t {
-  font-size: 0.68rem; letter-spacing: 0.07em;
-  text-transform: uppercase; color: var(--mod);
-  margin-bottom: 0.5rem;
-}
+.bcol-t { font-size: 0.68rem; letter-spacing: 0.07em; text-transform: uppercase; color: var(--mod); margin-bottom: 0.5rem; }
 .bcol-b { font-size: 0.82rem; line-height: 1.65; color: var(--ink); white-space: pre-wrap; }
 
 .rd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; margin-bottom: 0.9rem; }
@@ -451,22 +496,10 @@ textarea.lta:focus { border-color: var(--mod); }
 .rd-b { font-size: 0.8rem; line-height: 1.6; color: var(--ink); white-space: pre-wrap; }
 
 /* Save */
-.btn-save {
-  display: flex; align-items: center; gap: 0.4rem;
-  background: none; border: 1.5px solid var(--line);
-  border-radius: 10px; padding: 0.5rem 0.9rem;
-  font-family: Georgia, serif; font-size: 0.8rem;
-  color: var(--ink-light); cursor: pointer;
-  transition: all 0.18s; margin: 0.5rem auto 0;
-  width: fit-content;
-}
+.btn-save { display: flex; align-items: center; gap: 0.4rem; background: none; border: 1.5px solid var(--line); border-radius: 10px; padding: 0.5rem 0.9rem; font-family: Georgia, serif; font-size: 0.8rem; color: var(--ink-light); cursor: pointer; transition: all 0.18s; margin: 0.5rem auto 0; width: fit-content; }
 .btn-save:hover { border-color: var(--mod); color: var(--mod); }
 
-/* ── Animations ── */
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(18px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
+@keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
 </style>
 </head>
 <body>
@@ -475,34 +508,45 @@ textarea.lta:focus { border-color: var(--mod); }
 
 <!-- ══ SPLASH ══ -->
 <div id="splash" class="screen">
-  <div class="bubble-wrap" style="margin:auto;text-align:center;padding:2rem;">
-    <div class="bubble" id="sb"></div>
-    <div class="pen pen-lg" id="sp" onclick="penClick('sp','sb')">
-      <svg viewBox="0 0 100 100" fill="none">
-        <defs>
-          <linearGradient id="sfg" x1="20%" y1="0%" x2="80%" y2="100%">
-            <stop offset="0%" stop-color="#bae6fd"/>
-            <stop offset="40%" stop-color="#0ea5e9"/>
-            <stop offset="100%" stop-color="#0c4a6e"/>
-          </linearGradient>
-        </defs>
-        <g id="spb">
-          <path d="M50 8 C64 8 78 22 80 42 C82 62 74 78 62 90 L50 97 L38 90 C26 78 18 62 20 42 C22 22 36 8 50 8 Z" fill="url(#sfg)"/>
-          <path d="M50 9 Q51 53 50 96" stroke="rgba(255,255,255,0.75)" stroke-width="1.2" stroke-linecap="round" fill="none"/>
-          <path d="M48 22 C41 25 34 27 27 27" stroke="rgba(255,255,255,0.28)" stroke-width="0.9" stroke-linecap="round"/>
-          <path d="M47 34 C40 37 33 39 26 38" stroke="rgba(255,255,255,0.23)" stroke-width="0.9" stroke-linecap="round"/>
-          <path d="M46 46 C39 49 32 50 25 50" stroke="rgba(255,255,255,0.20)" stroke-width="0.9" stroke-linecap="round"/>
-          <path d="M46 58 C39 60 33 61 27 61" stroke="rgba(255,255,255,0.17)" stroke-width="0.9" stroke-linecap="round"/>
-          <path d="M52 22 C59 25 66 27 73 27" stroke="rgba(255,255,255,0.28)" stroke-width="0.9" stroke-linecap="round"/>
-          <path d="M53 34 C60 37 67 39 74 38" stroke="rgba(255,255,255,0.23)" stroke-width="0.9" stroke-linecap="round"/>
-          <path d="M54 46 C61 49 68 50 75 50" stroke="rgba(255,255,255,0.20)" stroke-width="0.9" stroke-linecap="round"/>
-          <path d="M54 58 C61 60 67 61 73 61" stroke="rgba(255,255,255,0.17)" stroke-width="0.9" stroke-linecap="round"/>
-          <line x1="50" y1="97" x2="50" y2="100" stroke="#64748b" stroke-width="2" stroke-linecap="round"/>
-        </g>
-      </svg>
+  <div style="margin:auto;text-align:center;padding:2rem;">
+    <div class="bubble-wrap" style="display:inline-block;">
+      <div class="bubble" id="sb"></div>
+      <div class="pen pen-lg float-anim" id="sp" onclick="penClick('sp','sb')">
+        <svg viewBox="0 0 200 270" fill="none" style="width:150px;height:200px;display:block;">
+          <defs>
+            <linearGradient id="sfg" x1="20%" y1="0%" x2="80%" y2="100%">
+              <stop offset="0%"   stop-color="#bae6fd"/>
+              <stop offset="20%"  stop-color="#7dd3fc"/>
+              <stop offset="50%"  stop-color="#0ea5e9"/>
+              <stop offset="80%"  stop-color="#0284c7"/>
+              <stop offset="100%" stop-color="#0c4a6e"/>
+            </linearGradient>
+            <linearGradient id="ssp" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%"   stop-color="rgba(240,249,255,0.95)"/>
+              <stop offset="100%" stop-color="rgba(125,211,252,0.7)"/>
+            </linearGradient>
+          </defs>
+          <g id="spb">
+            <path d="M100 18 C130 18 163 50 166 96 C169 140 152 182 127 215 L100 244 L73 215 C48 182 31 140 34 96 C37 50 70 18 100 18 Z" fill="url(#sfg)" filter="drop-shadow(0 10px 16px rgba(14,165,233,0.4))"/>
+            <path d="M97 45 C80 53 62 58 45 59"   stroke="rgba(255,255,255,0.32)" stroke-width="1.4" stroke-linecap="round"/>
+            <path d="M94 72 C77 79 59 83 43 83"   stroke="rgba(255,255,255,0.27)" stroke-width="1.4" stroke-linecap="round"/>
+            <path d="M92 99 C75 105 57 109 41 109" stroke="rgba(255,255,255,0.22)" stroke-width="1.4" stroke-linecap="round"/>
+            <path d="M91 126 C75 131 58 134 43 133" stroke="rgba(255,255,255,0.19)" stroke-width="1.4" stroke-linecap="round"/>
+            <path d="M92 153 C77 157 63 159 50 158" stroke="rgba(255,255,255,0.16)" stroke-width="1.4" stroke-linecap="round"/>
+            <path d="M103 45 C120 53 138 58 155 59"  stroke="rgba(255,255,255,0.32)" stroke-width="1.4" stroke-linecap="round"/>
+            <path d="M106 72 C123 79 141 83 157 83"  stroke="rgba(255,255,255,0.27)" stroke-width="1.4" stroke-linecap="round"/>
+            <path d="M108 99 C125 105 143 109 159 109" stroke="rgba(255,255,255,0.22)" stroke-width="1.4" stroke-linecap="round"/>
+            <path d="M109 126 C125 131 142 134 157 133" stroke="rgba(255,255,255,0.19)" stroke-width="1.4" stroke-linecap="round"/>
+            <path d="M108 153 C123 157 137 159 150 158" stroke="rgba(255,255,255,0.16)" stroke-width="1.4" stroke-linecap="round"/>
+            <path d="M100 20 Q101 132 100 242" stroke="url(#ssp)" stroke-width="1.9" stroke-linecap="round"/>
+            <line x1="100" y1="244" x2="100" y2="260" stroke="#64748b" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M96 257 L100 268 L104 257" fill="#475569"/>
+          </g>
+        </svg>
+      </div>
     </div>
-    <div class="splash-logo">Lumen</div>
-    <div class="splash-sub">tu asistente de texto</div>
+    <div class="splash-logo metallic-text">LUMEN</div>
+    <div class="splash-sub">text assistant</div>
     <div class="splash-phrase" id="sph">Preparando <span class="dots"><span>.</span><span>.</span><span>.</span></span></div>
   </div>
 </div>
@@ -510,55 +554,146 @@ textarea.lta:focus { border-color: var(--mod); }
 <!-- ══ HOME ══ -->
 <div id="home" class="screen hidden">
   <div class="home-head">
-    <div class="bubble-wrap">
-      <div class="bubble" id="hb"></div>
-      <div class="pen pen-lg" id="hp" onclick="penClick('hp','hb')">
-        <svg viewBox="0 0 100 100" fill="none">
-          <defs>
-            <linearGradient id="hfg" x1="20%" y1="0%" x2="80%" y2="100%">
-              <stop offset="0%" stop-color="#bae6fd"/>
-              <stop offset="40%" stop-color="#0ea5e9"/>
-              <stop offset="100%" stop-color="#0c4a6e"/>
-            </linearGradient>
-          </defs>
-          <g id="hpb">
-            <path d="M50 8 C64 8 78 22 80 42 C82 62 74 78 62 90 L50 97 L38 90 C26 78 18 62 20 42 C22 22 36 8 50 8 Z" fill="url(#hfg)"/>
-            <path d="M50 9 Q51 53 50 96" stroke="rgba(255,255,255,0.75)" stroke-width="1.2" stroke-linecap="round" fill="none"/>
-            <path d="M48 22 C41 25 34 27 27 27" stroke="rgba(255,255,255,0.28)" stroke-width="0.9" stroke-linecap="round"/>
-            <path d="M47 34 C40 37 33 39 26 38" stroke="rgba(255,255,255,0.23)" stroke-width="0.9" stroke-linecap="round"/>
-            <path d="M46 46 C39 49 32 50 25 50" stroke="rgba(255,255,255,0.20)" stroke-width="0.9" stroke-linecap="round"/>
-            <path d="M52 22 C59 25 66 27 73 27" stroke="rgba(255,255,255,0.28)" stroke-width="0.9" stroke-linecap="round"/>
-            <path d="M53 34 C60 37 67 39 74 38" stroke="rgba(255,255,255,0.23)" stroke-width="0.9" stroke-linecap="round"/>
-            <path d="M54 46 C61 49 68 50 75 50" stroke="rgba(255,255,255,0.20)" stroke-width="0.9" stroke-linecap="round"/>
-            <line x1="50" y1="97" x2="50" y2="100" stroke="#64748b" stroke-width="2" stroke-linecap="round"/>
-          </g>
-        </svg>
-      </div>
-    </div>
-    <div class="home-logo">Lumen</div>
-    <div class="home-tag">¿Qué quieres entender hoy?</div>
+    <div class="home-logo metallic-text">LUMEN</div>
+    <div class="home-tag">text assistant</div>
   </div>
 
   <div class="grid">
     <div class="card" data-m="simplificar" onclick="openMod('simplificar')">
       <div class="card-icon"><span class="material-symbols-outlined">auto_fix_high</span></div>
-      <div class="card-name">Simplificar</div>
-      <div class="card-desc">Textos difíciles en palabras claras</div>
+      <div>
+        <div class="card-name">Simplificar</div>
+        <div class="card-desc">Make concise</div>
+      </div>
     </div>
     <div class="card" data-m="burocracia" onclick="openMod('burocracia')">
       <div class="card-icon"><span class="material-symbols-outlined">gavel</span></div>
-      <div class="card-name">Burocracia</div>
-      <div class="card-desc">Entiende lo que te piden</div>
+      <div>
+        <div class="card-name">Burocracia</div>
+        <div class="card-desc">Formalize</div>
+      </div>
     </div>
     <div class="card" data-m="apuntes" onclick="openMod('apuntes')">
       <div class="card-icon"><span class="material-symbols-outlined">edit_note</span></div>
-      <div class="card-name">Apuntes</div>
-      <div class="card-desc">Graba, transcribe y resume</div>
+      <div>
+        <div class="card-name">Apuntes</div>
+        <div class="card-desc">Take notes</div>
+      </div>
     </div>
     <div class="card" data-m="revision" onclick="openMod('revision')">
       <div class="card-icon"><span class="material-symbols-outlined">spellcheck</span></div>
-      <div class="card-name">Revisión</div>
-      <div class="card-desc">Mejora lo que escribes</div>
+      <div>
+        <div class="card-name">Revisión</div>
+        <div class="card-desc">Review</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Decorative feathers (from PAGINA1) -->
+  <div class="feathers-wrapper">
+    <svg style="position:absolute;height:0;width:0;overflow:hidden;">
+      <defs>
+        <linearGradient id="fgBlue" x1="0%" x2="100%" y1="0%" y2="100%">
+          <stop offset="0%"   style="stop-color:#bae6fd"/>
+          <stop offset="20%"  style="stop-color:#0ea5e9"/>
+          <stop offset="50%"  style="stop-color:#0284c7"/>
+          <stop offset="100%" style="stop-color:#0c4a6e"/>
+        </linearGradient>
+        <linearGradient id="fgGreen" x1="0%" x2="100%" y1="0%" y2="100%">
+          <stop offset="0%"   style="stop-color:#bbf7d0"/>
+          <stop offset="20%"  style="stop-color:#22c55e"/>
+          <stop offset="50%"  style="stop-color:#16a34a"/>
+          <stop offset="100%" style="stop-color:#14532d"/>
+        </linearGradient>
+        <linearGradient id="fgRed" x1="0%" x2="100%" y1="0%" y2="100%">
+          <stop offset="0%"   style="stop-color:#fecaca"/>
+          <stop offset="20%"  style="stop-color:#ef4444"/>
+          <stop offset="50%"  style="stop-color:#dc2626"/>
+          <stop offset="100%" style="stop-color:#7f1d1d"/>
+        </linearGradient>
+        <linearGradient id="fgPurple" x1="0%" x2="100%" y1="0%" y2="100%">
+          <stop offset="0%"   style="stop-color:#e9d5ff"/>
+          <stop offset="20%"  style="stop-color:#a855f7"/>
+          <stop offset="50%"  style="stop-color:#9333ea"/>
+          <stop offset="100%" style="stop-color:#581c87"/>
+        </linearGradient>
+        <linearGradient id="fgSpine" x1="0%" x2="0%" y1="0%" y2="100%">
+          <stop offset="0%"   style="stop-color:rgba(255,255,255,0.9)"/>
+          <stop offset="100%" style="stop-color:rgba(255,255,255,0.4)"/>
+        </linearGradient>
+        <filter id="fShadow">
+          <feDropShadow dx="1" dy="4" stdDeviation="6" flood-color="rgba(0,0,0,0.2)"/>
+        </filter>
+      </defs>
+    </svg>
+
+    <!-- Green feather - far left -->
+    <div class="feather-float" style="left:-15px;transform:rotate(-18deg) translateY(25px) scale(0.62);">
+      <svg width="200" height="200" viewBox="0 0 512 512" fill="none">
+        <path d="M256 50 C316 50 370 110 374 210 C378 310 352 390 314 440 L256 476 L198 440 C160 390 134 310 138 210 C142 110 196 50 256 50 Z" fill="url(#fgGreen)" filter="url(#fShadow)"/>
+        <path d="M252 108 C225 120 196 128 168 130" stroke="rgba(255,255,255,0.28)" stroke-width="3" stroke-linecap="round"/>
+        <path d="M248 168 C221 179 193 186 166 187" stroke="rgba(255,255,255,0.22)" stroke-width="3" stroke-linecap="round"/>
+        <path d="M245 228 C219 238 193 244 168 244" stroke="rgba(255,255,255,0.18)" stroke-width="3" stroke-linecap="round"/>
+        <path d="M260 108 C287 120 316 128 344 130" stroke="rgba(255,255,255,0.28)" stroke-width="3" stroke-linecap="round"/>
+        <path d="M264 168 C291 179 319 186 346 187" stroke="rgba(255,255,255,0.22)" stroke-width="3" stroke-linecap="round"/>
+        <path d="M267 228 C293 238 319 244 344 244" stroke="rgba(255,255,255,0.18)" stroke-width="3" stroke-linecap="round"/>
+        <path d="M256 52 Q258 265 256 474" fill="none" stroke="url(#fgSpine)" stroke-width="3.5" stroke-linecap="round"/>
+        <line x1="256" y1="476" x2="256" y2="500" stroke="#475569" stroke-width="5" stroke-linecap="round"/>
+        <path d="M250 497 L256 512 L262 497" fill="#334155"/>
+      </svg>
+    </div>
+
+    <!-- Purple feather - far right -->
+    <div class="feather-float" style="right:-25px;transform:rotate(22deg) translateY(18px) scale(0.66);">
+      <svg width="200" height="200" viewBox="0 0 512 512" fill="none">
+        <path d="M256 50 C316 50 370 110 374 210 C378 310 352 390 314 440 L256 476 L198 440 C160 390 134 310 138 210 C142 110 196 50 256 50 Z" fill="url(#fgPurple)" filter="url(#fShadow)"/>
+        <path d="M252 108 C225 120 196 128 168 130" stroke="rgba(255,255,255,0.28)" stroke-width="3" stroke-linecap="round"/>
+        <path d="M248 168 C221 179 193 186 166 187" stroke="rgba(255,255,255,0.22)" stroke-width="3" stroke-linecap="round"/>
+        <path d="M245 228 C219 238 193 244 168 244" stroke="rgba(255,255,255,0.18)" stroke-width="3" stroke-linecap="round"/>
+        <path d="M260 108 C287 120 316 128 344 130" stroke="rgba(255,255,255,0.28)" stroke-width="3" stroke-linecap="round"/>
+        <path d="M264 168 C291 179 319 186 346 187" stroke="rgba(255,255,255,0.22)" stroke-width="3" stroke-linecap="round"/>
+        <path d="M267 228 C293 238 319 244 344 244" stroke="rgba(255,255,255,0.18)" stroke-width="3" stroke-linecap="round"/>
+        <path d="M256 52 Q258 265 256 474" fill="none" stroke="url(#fgSpine)" stroke-width="3.5" stroke-linecap="round"/>
+        <line x1="256" y1="476" x2="256" y2="500" stroke="#475569" stroke-width="5" stroke-linecap="round"/>
+        <path d="M250 497 L256 512 L262 497" fill="#334155"/>
+      </svg>
+    </div>
+
+    <!-- Red feather - center left -->
+    <div class="feather-float" style="left:18%;transform:rotate(-6deg) translateY(12px) scale(0.83);">
+      <svg width="200" height="200" viewBox="0 0 512 512" fill="none">
+        <path d="M256 50 C316 50 370 110 374 210 C378 310 352 390 314 440 L256 476 L198 440 C160 390 134 310 138 210 C142 110 196 50 256 50 Z" fill="url(#fgRed)" filter="url(#fShadow)"/>
+        <path d="M252 108 C225 120 196 128 168 130" stroke="rgba(255,255,255,0.28)" stroke-width="3" stroke-linecap="round"/>
+        <path d="M248 168 C221 179 193 186 166 187" stroke="rgba(255,255,255,0.22)" stroke-width="3" stroke-linecap="round"/>
+        <path d="M245 228 C219 238 193 244 168 244" stroke="rgba(255,255,255,0.18)" stroke-width="3" stroke-linecap="round"/>
+        <path d="M260 108 C287 120 316 128 344 130" stroke="rgba(255,255,255,0.28)" stroke-width="3" stroke-linecap="round"/>
+        <path d="M264 168 C291 179 319 186 346 187" stroke="rgba(255,255,255,0.22)" stroke-width="3" stroke-linecap="round"/>
+        <path d="M267 228 C293 238 319 244 344 244" stroke="rgba(255,255,255,0.18)" stroke-width="3" stroke-linecap="round"/>
+        <path d="M256 52 Q258 265 256 474" fill="none" stroke="url(#fgSpine)" stroke-width="3.5" stroke-linecap="round"/>
+        <line x1="256" y1="476" x2="256" y2="500" stroke="#475569" stroke-width="5" stroke-linecap="round"/>
+        <path d="M250 497 L256 512 L262 497" fill="#334155"/>
+      </svg>
+    </div>
+
+    <!-- Blue feather - center right (interactive) -->
+    <div class="feather-float bubble-wrap" style="right:22%;transform:rotate(12deg) translateY(-4px) scale(0.88);pointer-events:auto;">
+      <div class="bubble" id="hb" style="bottom:calc(100% + 10px);top:auto;"></div>
+      <div id="hp" onclick="penClick('hp','hb')" style="cursor:pointer;">
+        <svg width="200" height="200" viewBox="0 0 512 512" fill="none">
+          <g id="hpb">
+            <path d="M256 50 C316 50 370 110 374 210 C378 310 352 390 314 440 L256 476 L198 440 C160 390 134 310 138 210 C142 110 196 50 256 50 Z" fill="url(#fgBlue)" filter="url(#fShadow)"/>
+            <path d="M252 108 C225 120 196 128 168 130" stroke="rgba(255,255,255,0.28)" stroke-width="3" stroke-linecap="round"/>
+            <path d="M248 168 C221 179 193 186 166 187" stroke="rgba(255,255,255,0.22)" stroke-width="3" stroke-linecap="round"/>
+            <path d="M245 228 C219 238 193 244 168 244" stroke="rgba(255,255,255,0.18)" stroke-width="3" stroke-linecap="round"/>
+            <path d="M260 108 C287 120 316 128 344 130" stroke="rgba(255,255,255,0.28)" stroke-width="3" stroke-linecap="round"/>
+            <path d="M264 168 C291 179 319 186 346 187" stroke="rgba(255,255,255,0.22)" stroke-width="3" stroke-linecap="round"/>
+            <path d="M267 228 C293 238 319 244 344 244" stroke="rgba(255,255,255,0.18)" stroke-width="3" stroke-linecap="round"/>
+            <path d="M256 52 Q258 265 256 474" fill="none" stroke="url(#fgSpine)" stroke-width="3.5" stroke-linecap="round"/>
+            <line x1="256" y1="476" x2="256" y2="500" stroke="#475569" stroke-width="5" stroke-linecap="round"/>
+            <path d="M250 497 L256 512 L262 497" fill="#334155"/>
+          </g>
+        </svg>
+      </div>
     </div>
   </div>
 </div>
@@ -598,16 +733,23 @@ textarea.lta:focus { border-color: var(--mod); }
     <!-- INPUT TABS -->
     <div class="tabs">
       <button class="tab on" data-t="scan" onclick="switchTab('scan')">
-        <span class="material-symbols-outlined">crop_free</span>Escanear
+        <span class="material-symbols-outlined tab-icon-default">crop_free</span>
+        <span class="material-symbols-outlined tab-icon-buro">document_scanner</span>
+        <span class="material-symbols-outlined tab-icon-other">add_a_photo</span>
+        Escanear
       </button>
       <button class="tab" data-t="file" onclick="switchTab('file')">
-        <span class="material-symbols-outlined">folder_open</span>Archivo
+        <span class="material-symbols-outlined">folder_open</span>
+        Archivo
       </button>
       <button class="tab" data-t="text" onclick="switchTab('text')">
-        <span class="material-symbols-outlined">edit_note</span>Texto
+        <span class="material-symbols-outlined tab-text-default">edit_note</span>
+        <span class="material-symbols-outlined tab-text-other">keyboard</span>
+        Texto
       </button>
       <button class="tab" data-t="audio" onclick="switchTab('audio')">
-        <span class="material-symbols-outlined">mic</span>Audio
+        <span class="material-symbols-outlined">mic</span>
+        Audio
       </button>
     </div>
 
@@ -645,7 +787,30 @@ textarea.lta:focus { border-color: var(--mod); }
 
     <!-- TEXT -->
     <div class="panel" id="p-text">
-      <textarea class="lta" id="ta" placeholder="Escribe o pega tu texto aquí…" rows="6"></textarea>
+      <div class="buro-chrome">
+        <span class="buro-chrome-dot"></span>
+        <span class="buro-chrome-label">Entrada Manual</span>
+        <span class="buro-chrome-date" id="buro-date"></span>
+      </div>
+      <div class="rev-chrome">
+        <div class="mac-dots">
+          <span class="mac-dot red"></span>
+          <span class="mac-dot amber"></span>
+          <span class="mac-dot green"></span>
+        </div>
+        <span class="rev-mode-label">Modo Editor</span>
+      </div>
+      <div class="ta-wrap">
+        <textarea class="lta" id="ta" placeholder="Escribe o pega tu texto aquí…" rows="6"></textarea>
+        <button class="rev-paste-btn" title="Pegar"
+          onclick="navigator.clipboard.readText().then(t=>{const ta=document.getElementById('ta');ta.value+=t}).catch(()=>{})">
+          <span class="material-symbols-outlined">content_paste</span>
+        </button>
+      </div>
+      <div class="simp-status">
+        <span class="status-dot"></span>
+        <span>Español detectado</span>
+      </div>
     </div>
 
     <!-- AUDIO -->
@@ -808,6 +973,9 @@ function openMod(id) {
   document.getElementById('mt').textContent = c.title;
   document.getElementById('ms').textContent = c.sub;
   document.getElementById('bl').textContent = c.label;
+  document.getElementById('mod').setAttribute('data-mod', id);
+  const bd = document.getElementById('buro-date');
+  if (bd) { const now = new Date(); bd.textContent = now.toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric'}).toUpperCase(); }
   switchTab('scan');
   renderExtras(id);
   clearResults();
@@ -912,7 +1080,6 @@ function clearAudio() {
 async function submit() {
   hideErr();
   const c = MODS[curMod];
-  // For text tab: send JSON. For file/scan/audio: send FormData.
   let isJson = false;
   let fd = new FormData();
   let jsonBody = null;
