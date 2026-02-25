@@ -160,10 +160,7 @@
       display: block;
     }
 
-    .pen-lg svg {
-      width: 80px;
-      height: 80px;
-    }
+    /* .pen-lg svg size is set per-instance via inline style */
 
     .pen-sm svg {
       width: 40px;
@@ -1374,7 +1371,7 @@
 ══════════════════════════════ */
     #home {
       padding: 0;
-      overflow-y: auto;
+      overflow: visible;
       display: flex;
       flex-direction: column;
     }
@@ -1532,13 +1529,14 @@
       position: relative;
       height: 175px;
       width: 100%;
-      overflow: hidden;
+      overflow: visible;
       display: flex;
       justify-content: center;
       align-items: flex-end;
       pointer-events: none;
       margin-top: auto;
       padding-bottom: 0;
+      z-index: 20;
     }
 
     .quill-float-v2 {
@@ -1649,28 +1647,28 @@
         <div class="module-card-icon"><span class="material-symbols-outlined">auto_fix_high</span></div>
         <div>
           <div class="module-card-name">Simplificar</div>
-          <div class="module-card-desc">Entiende el texto</div>
+          <div class="module-card-desc">Make concise</div>
         </div>
       </div>
       <div class="module-card" data-m="burocracia" onclick="openMod('burocracia')">
         <div class="module-card-icon"><span class="material-symbols-outlined">gavel</span></div>
         <div>
           <div class="module-card-name">Burocracia</div>
-          <div class="module-card-desc">Aclara doc oficiales</div>
+          <div class="module-card-desc">Formalize</div>
         </div>
       </div>
       <div class="module-card" data-m="apuntes" onclick="openMod('apuntes')">
         <div class="module-card-icon"><span class="material-symbols-outlined">edit_note</span></div>
         <div>
           <div class="module-card-name">Apuntes</div>
-          <div class="module-card-desc">Resume y escucha</div>
+          <div class="module-card-desc">Take notes</div>
         </div>
       </div>
       <div class="module-card" data-m="revision" onclick="openMod('revision')">
         <div class="module-card-icon"><span class="material-symbols-outlined">spellcheck</span></div>
         <div>
           <div class="module-card-name">Revisión</div>
-          <div class="module-card-desc">Adapta el mensaje</div>
+          <div class="module-card-desc">Review</div>
         </div>
       </div>
     </div>
@@ -2438,24 +2436,24 @@
         const p = pool(), w = p[Math.floor(Math.random() * p.length)];
         ws.push({
           t: w, x: 60 + Math.random() * (cv.width - 80), y: 20 + Math.random() * (cv.height - 30),
-          sz: 10 + Math.random() * 9, a: 0, ph: 'in', life: 0, max: 160 + Math.random() * 120
+          sz: 10 + Math.random() * 9, a: 0, ph: 'in', life: 0, max: 480 + Math.random() * 360
         });
       }
-      setInterval(spawn, 900);
+      setInterval(spawn, 3500);
       function tick() {
         cx.clearRect(0, 0, cv.width, cv.height);
         ws = ws.filter(w => w.ph !== 'dead');
         for (const w of ws) {
           w.life++;
-          if (w.ph === 'in') { w.a = Math.min(1, w.life / 28); if (w.a >= 1) w.ph = 'hold'; }
+          if (w.ph === 'in') { w.a = Math.min(0.18, w.life / 200); if (w.a >= 0.18) w.ph = 'hold'; }
           else if (w.ph === 'hold') { if (w.life >= w.max) w.ph = 'out'; }
-          else if (w.ph === 'out') { w.a -= 0.022; if (w.a <= 0) w.ph = 'dead'; }
+          else if (w.ph === 'out') { w.a -= 0.0008; if (w.a <= 0) w.ph = 'dead'; }
           cx.save(); cx.globalAlpha = w.a;
           cx.font = `italic ${w.sz}px Georgia,serif`;
-          cx.fillStyle = '#1a1714'; cx.fillText(w.t, w.x, w.y);
+          cx.fillStyle = '#334155'; cx.fillText(w.t, w.x, w.y);
           cx.restore();
         }
-        if (ws.length < 16) spawn();
+        if (ws.length < 10) spawn();
         requestAnimationFrame(tick);
       }
       tick();
