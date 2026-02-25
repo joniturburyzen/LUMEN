@@ -1369,6 +1369,184 @@
       color: var(--mod);
     }
 
+    /* ══════════════════════════════
+   HOME v2 – new card design
+══════════════════════════════ */
+    #home {
+      padding: 0;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .home-head-v2 {
+      padding: 3rem 1.5rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .home-logo-v2 {
+      font-family: 'Cinzel', Georgia, serif;
+      font-size: clamp(2.4rem, 11vw, 4rem);
+      font-weight: 800;
+      letter-spacing: 0.15em;
+      background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #172554 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 2px 4px rgba(59, 130, 246, 0.2));
+    }
+
+    .home-tag-v2 {
+      font-family: 'Lato', sans-serif;
+      color: #64748b;
+      font-size: 0.72rem;
+      margin-top: 0.4rem;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+    }
+
+    .home-grid-v2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.2rem;
+      padding: 0.5rem 1.3rem 1rem;
+      max-width: 480px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .module-card {
+      position: relative;
+      padding: 1.1rem;
+      border-radius: 1.1rem;
+      cursor: pointer;
+      height: 9.2rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: flex-start;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 10px 10px -5px rgba(0, 0, 0, 0.03);
+      transition: transform 0.18s, box-shadow 0.18s;
+      -webkit-tap-highlight-color: transparent;
+      border: 2px solid transparent;
+      text-align: left;
+    }
+
+    .module-card:hover {
+      transform: translateY(-2px);
+    }
+
+    .module-card:active {
+      transform: scale(0.97);
+    }
+
+    .module-card[data-m="simplificar"] {
+      border-color: #0ea5e9;
+    }
+
+    .module-card[data-m="burocracia"] {
+      border-color: #ef4444;
+    }
+
+    .module-card[data-m="apuntes"] {
+      border-color: #22c55e;
+    }
+
+    .module-card[data-m="revision"] {
+      border-color: #a855f7;
+    }
+
+    .module-card[data-m="simplificar"]:hover {
+      box-shadow: 0 0 10px rgba(14, 165, 233, 0.45), 0 0 22px rgba(14, 165, 233, 0.25), 0 20px 25px -5px rgba(0, 0, 0, 0.08);
+    }
+
+    .module-card[data-m="burocracia"]:hover {
+      box-shadow: 0 0 10px rgba(239, 68, 68, 0.45), 0 0 22px rgba(239, 68, 68, 0.25), 0 20px 25px -5px rgba(0, 0, 0, 0.08);
+    }
+
+    .module-card[data-m="apuntes"]:hover {
+      box-shadow: 0 0 10px rgba(34, 197, 94, 0.45), 0 0 22px rgba(34, 197, 94, 0.25), 0 20px 25px -5px rgba(0, 0, 0, 0.08);
+    }
+
+    .module-card[data-m="revision"]:hover {
+      box-shadow: 0 0 10px rgba(168, 85, 247, 0.45), 0 0 22px rgba(168, 85, 247, 0.25), 0 20px 25px -5px rgba(0, 0, 0, 0.08);
+    }
+
+    .module-card-icon {
+      width: 2.4rem;
+      height: 2.4rem;
+      border-radius: 0.55rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .module-card[data-m="simplificar"] .module-card-icon {
+      background: #e0f2fe;
+      color: #0284c7;
+    }
+
+    .module-card[data-m="burocracia"] .module-card-icon {
+      background: #fee2e2;
+      color: #dc2626;
+    }
+
+    .module-card[data-m="apuntes"] .module-card-icon {
+      background: #dcfce7;
+      color: #16a34a;
+    }
+
+    .module-card[data-m="revision"] .module-card-icon {
+      background: #f3e8ff;
+      color: #9333ea;
+    }
+
+    .module-card-icon .material-symbols-outlined {
+      font-size: 1.4rem;
+    }
+
+    .module-card-name {
+      font-family: 'Cinzel', Georgia, serif;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: #1e293b;
+    }
+
+    .module-card-desc {
+      font-family: 'Lato', sans-serif;
+      font-size: 0.58rem;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-top: 0.2rem;
+    }
+
+    /* Quills wrapper v2 */
+    .quills-wrapper-v2 {
+      position: relative;
+      height: 175px;
+      width: 100%;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      pointer-events: none;
+      margin-top: auto;
+      padding-bottom: 0;
+    }
+
+    .quill-float-v2 {
+      position: absolute;
+      bottom: 0;
+      filter: drop-shadow(5px 10px 15px rgba(0, 0, 0, 0.25));
+    }
+
     @keyframes fadeUp {
       from {
         opacity: 0;
@@ -1458,181 +1636,161 @@
 
   <!-- ══ HOME ══ -->
   <div id="home" class="screen hidden">
-    <div class="home-head">
-      <div class="home-logo metallic-text">LUMEN</div>
-      <div class="home-tag">text assistant</div>
+
+    <!-- Header -->
+    <div class="home-head-v2">
+      <div class="home-logo-v2">LUMEN</div>
+      <div class="home-tag-v2">text assistant</div>
     </div>
 
-    <div class="grid">
-      <div class="card" data-m="simplificar" onclick="openMod('simplificar')">
-        <div class="card-icon"><span class="material-symbols-outlined">auto_fix_high</span></div>
+    <!-- Module cards grid -->
+    <div class="home-grid-v2">
+      <div class="module-card" data-m="simplificar" onclick="openMod('simplificar')">
+        <div class="module-card-icon"><span class="material-symbols-outlined">auto_fix_high</span></div>
         <div>
-          <div class="card-name">Simplificar</div>
-          <div class="card-desc">Make concise</div>
+          <div class="module-card-name">Simplificar</div>
+          <div class="module-card-desc">Make concise</div>
         </div>
       </div>
-      <div class="card" data-m="burocracia" onclick="openMod('burocracia')">
-        <div class="card-icon"><span class="material-symbols-outlined">gavel</span></div>
+      <div class="module-card" data-m="burocracia" onclick="openMod('burocracia')">
+        <div class="module-card-icon"><span class="material-symbols-outlined">gavel</span></div>
         <div>
-          <div class="card-name">Burocracia</div>
-          <div class="card-desc">Formalize</div>
+          <div class="module-card-name">Burocracia</div>
+          <div class="module-card-desc">Formalize</div>
         </div>
       </div>
-      <div class="card" data-m="apuntes" onclick="openMod('apuntes')">
-        <div class="card-icon"><span class="material-symbols-outlined">edit_note</span></div>
+      <div class="module-card" data-m="apuntes" onclick="openMod('apuntes')">
+        <div class="module-card-icon"><span class="material-symbols-outlined">edit_note</span></div>
         <div>
-          <div class="card-name">Apuntes</div>
-          <div class="card-desc">Take notes</div>
+          <div class="module-card-name">Apuntes</div>
+          <div class="module-card-desc">Take notes</div>
         </div>
       </div>
-      <div class="card" data-m="revision" onclick="openMod('revision')">
-        <div class="card-icon"><span class="material-symbols-outlined">spellcheck</span></div>
+      <div class="module-card" data-m="revision" onclick="openMod('revision')">
+        <div class="module-card-icon"><span class="material-symbols-outlined">spellcheck</span></div>
         <div>
-          <div class="card-name">Revisión</div>
-          <div class="card-desc">Review</div>
+          <div class="module-card-name">Revisión</div>
+          <div class="module-card-desc">Review</div>
         </div>
       </div>
     </div>
 
-    <!-- Decorative feathers (from PAGINA1) -->
-    <div class="feathers-wrapper">
+    <!-- Decorative quills at bottom -->
+    <div class="quills-wrapper-v2">
       <svg style="position:absolute;height:0;width:0;overflow:hidden;">
         <defs>
-          <linearGradient id="fgBlue" x1="0%" x2="100%" y1="0%" y2="100%">
-            <stop offset="0%" style="stop-color:#bae6fd" />
-            <stop offset="20%" style="stop-color:#0ea5e9" />
-            <stop offset="50%" style="stop-color:#0284c7" />
-            <stop offset="100%" style="stop-color:#0c4a6e" />
+          <linearGradient id="hqBlue" x1="0%" x2="100%" y1="0%" y2="100%">
+            <stop offset="0%" style="stop-color:#bae6fd;stop-opacity:1" />
+            <stop offset="20%" style="stop-color:#0ea5e9;stop-opacity:1" />
+            <stop offset="50%" style="stop-color:#0284c7;stop-opacity:1" />
+            <stop offset="80%" style="stop-color:#0369a1;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#0c4a6e;stop-opacity:1" />
           </linearGradient>
-          <linearGradient id="fgGreen" x1="0%" x2="100%" y1="0%" y2="100%">
-            <stop offset="0%" style="stop-color:#bbf7d0" />
-            <stop offset="20%" style="stop-color:#22c55e" />
-            <stop offset="50%" style="stop-color:#16a34a" />
-            <stop offset="100%" style="stop-color:#14532d" />
+          <linearGradient id="hqGreen" x1="0%" x2="100%" y1="0%" y2="100%">
+            <stop offset="0%" style="stop-color:#bbf7d0;stop-opacity:1" />
+            <stop offset="20%" style="stop-color:#22c55e;stop-opacity:1" />
+            <stop offset="50%" style="stop-color:#16a34a;stop-opacity:1" />
+            <stop offset="80%" style="stop-color:#15803d;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#14532d;stop-opacity:1" />
           </linearGradient>
-          <linearGradient id="fgRed" x1="0%" x2="100%" y1="0%" y2="100%">
-            <stop offset="0%" style="stop-color:#fecaca" />
-            <stop offset="20%" style="stop-color:#ef4444" />
-            <stop offset="50%" style="stop-color:#dc2626" />
-            <stop offset="100%" style="stop-color:#7f1d1d" />
+          <linearGradient id="hqRed" x1="0%" x2="100%" y1="0%" y2="100%">
+            <stop offset="0%" style="stop-color:#fecaca;stop-opacity:1" />
+            <stop offset="20%" style="stop-color:#ef4444;stop-opacity:1" />
+            <stop offset="50%" style="stop-color:#dc2626;stop-opacity:1" />
+            <stop offset="80%" style="stop-color:#b91c1c;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#7f1d1d;stop-opacity:1" />
           </linearGradient>
-          <linearGradient id="fgPurple" x1="0%" x2="100%" y1="0%" y2="100%">
-            <stop offset="0%" style="stop-color:#e9d5ff" />
-            <stop offset="20%" style="stop-color:#a855f7" />
-            <stop offset="50%" style="stop-color:#9333ea" />
-            <stop offset="100%" style="stop-color:#581c87" />
+          <linearGradient id="hqPurple" x1="0%" x2="100%" y1="0%" y2="100%">
+            <stop offset="0%" style="stop-color:#e9d5ff;stop-opacity:1" />
+            <stop offset="20%" style="stop-color:#a855f7;stop-opacity:1" />
+            <stop offset="50%" style="stop-color:#9333ea;stop-opacity:1" />
+            <stop offset="80%" style="stop-color:#7e22ce;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#581c87;stop-opacity:1" />
           </linearGradient>
-          <linearGradient id="fgSpine" x1="0%" x2="0%" y1="0%" y2="100%">
-            <stop offset="0%" style="stop-color:rgba(255,255,255,0.9)" />
-            <stop offset="100%" style="stop-color:rgba(255,255,255,0.4)" />
+          <linearGradient id="hqSpine" x1="0%" x2="0%" y1="0%" y2="100%">
+            <stop offset="0%" style="stop-color:#f0f9ff;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#7dd3fc;stop-opacity:1" />
           </linearGradient>
-          <filter id="fShadow">
-            <feDropShadow dx="1" dy="4" stdDeviation="6" flood-color="rgba(0,0,0,0.2)" />
+          <linearGradient id="hqNib" x1="0%" x2="100%" y1="0%" y2="100%">
+            <stop offset="0%" style="stop-color:#e2e8f0;stop-opacity:1" />
+            <stop offset="50%" style="stop-color:#94a3b8;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#475569;stop-opacity:1" />
+          </linearGradient>
+          <filter id="hqShine" width="140%" height="140%" x="-20%" y="-20%">
+            <feGaussianBlur in="SourceAlpha" result="blur" stdDeviation="2" />
+            <feOffset dx="1" dy="2" in="blur" result="offsetBlur" />
+            <feSpecularLighting in="blur" lighting-color="#fff" result="specOut" specularConstant=".8"
+              specularExponent="25" surfaceScale="5">
+              <fePointLight x="-5000" y="-10000" z="20000" />
+            </feSpecularLighting>
+            <feComposite in="specOut" in2="SourceAlpha" operator="in" result="specOut" />
+            <feComposite in="SourceGraphic" in2="specOut" k1="0" k2="1" k3="1" k4="0" operator="arithmetic"
+              result="litPaint" />
           </filter>
         </defs>
       </svg>
 
-      <!-- Green feather - far left -->
-      <div class="feather-float" style="left:-15px;transform:rotate(-18deg) translateY(25px) scale(0.62);">
+      <!-- Green quill – far left -->
+      <div class="quill-float-v2" style="left:-10px;transform:rotate(-15deg) translateY(20px) scale(0.65);">
         <svg width="200" height="200" viewBox="0 0 512 512" fill="none">
-          <path
-            d="M256 50 C316 50 370 110 374 210 C378 310 352 390 314 440 L256 476 L198 440 C160 390 134 310 138 210 C142 110 196 50 256 50 Z"
-            fill="url(#fgGreen)" filter="url(#fShadow)" />
-          <path d="M252 108 C225 120 196 128 168 130" stroke="rgba(255,255,255,0.28)" stroke-width="3"
-            stroke-linecap="round" />
-          <path d="M248 168 C221 179 193 186 166 187" stroke="rgba(255,255,255,0.22)" stroke-width="3"
-            stroke-linecap="round" />
-          <path d="M245 228 C219 238 193 244 168 244" stroke="rgba(255,255,255,0.18)" stroke-width="3"
-            stroke-linecap="round" />
-          <path d="M260 108 C287 120 316 128 344 130" stroke="rgba(255,255,255,0.28)" stroke-width="3"
-            stroke-linecap="round" />
-          <path d="M264 168 C291 179 319 186 346 187" stroke="rgba(255,255,255,0.22)" stroke-width="3"
-            stroke-linecap="round" />
-          <path d="M267 228 C293 238 319 244 344 244" stroke="rgba(255,255,255,0.18)" stroke-width="3"
-            stroke-linecap="round" />
-          <path d="M256 52 Q258 265 256 474" fill="none" stroke="url(#fgSpine)" stroke-width="3.5"
-            stroke-linecap="round" />
-          <line x1="256" y1="476" x2="256" y2="500" stroke="#475569" stroke-width="5" stroke-linecap="round" />
-          <path d="M250 497 L256 512 L262 497" fill="#334155" />
+          <path d="M420 40 C420 40 320 180 260 250 C220 290 180 320 160 380 C150 410 148 430 148 450"
+            fill="url(#hqGreen)" filter="url(#hqShine)" />
+          <path d="M420 40 C440 80 440 160 380 240 C340 290 260 380 148 450" fill="url(#hqGreen)" filter="url(#hqShine)"
+            opacity="0.9" />
+          <path d="M420 40 Q 300 180 148 450" fill="none" stroke="url(#hqSpine)" stroke-linecap="round"
+            stroke-width="3" />
+          <g transform="translate(136,430) rotate(-15)">
+            <path d="M12 0 L24 40 L12 50 L0 40 Z" fill="url(#hqNib)" />
+          </g>
         </svg>
       </div>
 
-      <!-- Purple feather - far right -->
-      <div class="feather-float" style="right:-25px;transform:rotate(22deg) translateY(18px) scale(0.66);">
+      <!-- Purple quill – far right -->
+      <div class="quill-float-v2" style="right:-20px;transform:rotate(20deg) translateY(10px) scale(0.7);">
         <svg width="200" height="200" viewBox="0 0 512 512" fill="none">
-          <path
-            d="M256 50 C316 50 370 110 374 210 C378 310 352 390 314 440 L256 476 L198 440 C160 390 134 310 138 210 C142 110 196 50 256 50 Z"
-            fill="url(#fgPurple)" filter="url(#fShadow)" />
-          <path d="M252 108 C225 120 196 128 168 130" stroke="rgba(255,255,255,0.28)" stroke-width="3"
-            stroke-linecap="round" />
-          <path d="M248 168 C221 179 193 186 166 187" stroke="rgba(255,255,255,0.22)" stroke-width="3"
-            stroke-linecap="round" />
-          <path d="M245 228 C219 238 193 244 168 244" stroke="rgba(255,255,255,0.18)" stroke-width="3"
-            stroke-linecap="round" />
-          <path d="M260 108 C287 120 316 128 344 130" stroke="rgba(255,255,255,0.28)" stroke-width="3"
-            stroke-linecap="round" />
-          <path d="M264 168 C291 179 319 186 346 187" stroke="rgba(255,255,255,0.22)" stroke-width="3"
-            stroke-linecap="round" />
-          <path d="M267 228 C293 238 319 244 344 244" stroke="rgba(255,255,255,0.18)" stroke-width="3"
-            stroke-linecap="round" />
-          <path d="M256 52 Q258 265 256 474" fill="none" stroke="url(#fgSpine)" stroke-width="3.5"
-            stroke-linecap="round" />
-          <line x1="256" y1="476" x2="256" y2="500" stroke="#475569" stroke-width="5" stroke-linecap="round" />
-          <path d="M250 497 L256 512 L262 497" fill="#334155" />
+          <path d="M420 40 C420 40 320 180 260 250 C220 290 180 320 160 380 C150 410 148 430 148 450"
+            fill="url(#hqPurple)" filter="url(#hqShine)" />
+          <path d="M420 40 C440 80 440 160 380 240 C340 290 260 380 148 450" fill="url(#hqPurple)"
+            filter="url(#hqShine)" opacity="0.9" />
+          <path d="M420 40 Q 300 180 148 450" fill="none" stroke="url(#hqSpine)" stroke-linecap="round"
+            stroke-width="3" />
+          <g transform="translate(136,430) rotate(-15)">
+            <path d="M12 0 L24 40 L12 50 L0 40 Z" fill="url(#hqNib)" />
+          </g>
         </svg>
       </div>
 
-      <!-- Red feather - center left -->
-      <div class="feather-float" style="left:18%;transform:rotate(-6deg) translateY(12px) scale(0.83);">
+      <!-- Red quill – center left -->
+      <div class="quill-float-v2" style="left:20%;transform:rotate(-5deg) translateY(10px) scale(0.85);">
         <svg width="200" height="200" viewBox="0 0 512 512" fill="none">
-          <path
-            d="M256 50 C316 50 370 110 374 210 C378 310 352 390 314 440 L256 476 L198 440 C160 390 134 310 138 210 C142 110 196 50 256 50 Z"
-            fill="url(#fgRed)" filter="url(#fShadow)" />
-          <path d="M252 108 C225 120 196 128 168 130" stroke="rgba(255,255,255,0.28)" stroke-width="3"
-            stroke-linecap="round" />
-          <path d="M248 168 C221 179 193 186 166 187" stroke="rgba(255,255,255,0.22)" stroke-width="3"
-            stroke-linecap="round" />
-          <path d="M245 228 C219 238 193 244 168 244" stroke="rgba(255,255,255,0.18)" stroke-width="3"
-            stroke-linecap="round" />
-          <path d="M260 108 C287 120 316 128 344 130" stroke="rgba(255,255,255,0.28)" stroke-width="3"
-            stroke-linecap="round" />
-          <path d="M264 168 C291 179 319 186 346 187" stroke="rgba(255,255,255,0.22)" stroke-width="3"
-            stroke-linecap="round" />
-          <path d="M267 228 C293 238 319 244 344 244" stroke="rgba(255,255,255,0.18)" stroke-width="3"
-            stroke-linecap="round" />
-          <path d="M256 52 Q258 265 256 474" fill="none" stroke="url(#fgSpine)" stroke-width="3.5"
-            stroke-linecap="round" />
-          <line x1="256" y1="476" x2="256" y2="500" stroke="#475569" stroke-width="5" stroke-linecap="round" />
-          <path d="M250 497 L256 512 L262 497" fill="#334155" />
+          <path d="M420 40 C420 40 320 180 260 250 C220 290 180 320 160 380 C150 410 148 430 148 450" fill="url(#hqRed)"
+            filter="url(#hqShine)" />
+          <path d="M420 40 C440 80 440 160 380 240 C340 290 260 380 148 450" fill="url(#hqRed)" filter="url(#hqShine)"
+            opacity="0.9" />
+          <path d="M420 40 Q 300 180 148 450" fill="none" stroke="url(#hqSpine)" stroke-linecap="round"
+            stroke-width="3" />
+          <g transform="translate(136,430) rotate(-15)">
+            <path d="M12 0 L24 40 L12 50 L0 40 Z" fill="url(#hqNib)" />
+          </g>
         </svg>
       </div>
 
-      <!-- Blue feather - center right (interactive) -->
-      <div class="feather-float bubble-wrap"
-        style="right:22%;transform:rotate(12deg) translateY(-4px) scale(0.88);pointer-events:auto;">
+      <!-- Blue quill – center right (interactive) -->
+      <div class="quill-float-v2 bubble-wrap"
+        style="right:25%;transform:rotate(10deg) translateY(-5px) scale(0.9);pointer-events:auto;">
         <div class="bubble" id="hb" style="bottom:calc(100% + 10px);top:auto;"></div>
         <div id="hp" onclick="penClick('hp','hb')" style="cursor:pointer;">
           <svg width="200" height="200" viewBox="0 0 512 512" fill="none">
             <g id="hpb">
-              <path
-                d="M256 50 C316 50 370 110 374 210 C378 310 352 390 314 440 L256 476 L198 440 C160 390 134 310 138 210 C142 110 196 50 256 50 Z"
-                fill="url(#fgBlue)" filter="url(#fShadow)" />
-              <path d="M252 108 C225 120 196 128 168 130" stroke="rgba(255,255,255,0.28)" stroke-width="3"
-                stroke-linecap="round" />
-              <path d="M248 168 C221 179 193 186 166 187" stroke="rgba(255,255,255,0.22)" stroke-width="3"
-                stroke-linecap="round" />
-              <path d="M245 228 C219 238 193 244 168 244" stroke="rgba(255,255,255,0.18)" stroke-width="3"
-                stroke-linecap="round" />
-              <path d="M260 108 C287 120 316 128 344 130" stroke="rgba(255,255,255,0.28)" stroke-width="3"
-                stroke-linecap="round" />
-              <path d="M264 168 C291 179 319 186 346 187" stroke="rgba(255,255,255,0.22)" stroke-width="3"
-                stroke-linecap="round" />
-              <path d="M267 228 C293 238 319 244 344 244" stroke="rgba(255,255,255,0.18)" stroke-width="3"
-                stroke-linecap="round" />
-              <path d="M256 52 Q258 265 256 474" fill="none" stroke="url(#fgSpine)" stroke-width="3.5"
-                stroke-linecap="round" />
-              <line x1="256" y1="476" x2="256" y2="500" stroke="#475569" stroke-width="5" stroke-linecap="round" />
-              <path d="M250 497 L256 512 L262 497" fill="#334155" />
+              <path d="M420 40 C420 40 320 180 260 250 C220 290 180 320 160 380 C150 410 148 430 148 450"
+                fill="url(#hqBlue)" filter="url(#hqShine)" />
+              <path d="M420 40 C440 80 440 160 380 240 C340 290 260 380 148 450" fill="url(#hqBlue)"
+                filter="url(#hqShine)" opacity="0.9" />
+              <path d="M420 40 Q 300 180 148 450" fill="none" stroke="url(#hqSpine)" stroke-linecap="round"
+                stroke-width="3" />
+              <g transform="translate(136,430) rotate(-15)">
+                <path d="M12 0 L24 40 L12 50 L0 40 Z" fill="url(#hqNib)" />
+              </g>
             </g>
           </svg>
         </div>
