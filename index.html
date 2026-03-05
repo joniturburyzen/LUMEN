@@ -2156,7 +2156,63 @@
       startCanvas();
       splashGo();
       fetch(API + '/').catch(() => { });
+      initQuill3D();
     });
+
+    async function initQuill3D() {
+      try {
+        const { default: init, Quill } = await import('./pkg/lumen_quill.js');
+        await init();
+
+        // Canvas WebGL
+        const canvas = document.createElement('canvas');
+        canvas.id = 'quill_canvas';
+        canvas.width = 300;
+        canvas.height = 400;
+        canvas.style.cssText = 'width:220px;height:293px;display:block;margin:0 auto;cursor:pointer;';
+
+        // Reemplazar SVG por canvas (carga progresiva)
+        const svgWrap = document.getElementById('sp');
+        svgWrap.style.display = 'none';
+        svgWrap.parentNode.insertBefore(canvas, svgWrap);
+
+        // Mantener el onclick de penClick en el canvas
+        canvas.addEventListener('click', () => penClick('sp', 'sb'));
+
+        const quill = new Quill('quill_canvas');
+        let lastTime = performance.now();
+
+        // Tilt con ratón
+        document.addEventListener('mousemove', e => {
+          const cx = window.innerWidth / 2;
+          const cy = window.innerHeight / 2;
+          quill.set_tilt(e.clientX - cx, e.clientY - cy);
+        });
+
+        // Tilt con dedo
+        document.addEventListener('touchmove', e => {
+          if (e.touches.length > 0) {
+            const cx = window.innerWidth / 2;
+            const cy = window.innerHeight / 2;
+            quill.set_tilt(e.touches[0].clientX - cx, e.touches[0].clientY - cy);
+          }
+        }, { passive: true });
+
+        // Loop de animación
+        function frame(now) {
+          const dt = Math.min((now - lastTime) / 1000, 0.05);
+          lastTime = now;
+          quill.tick(dt);
+          quill.render(now / 1000, 300, 400);
+          requestAnimationFrame(frame);
+        }
+        requestAnimationFrame(frame);
+
+      } catch(err) {
+        // Sin WebGL2 → queda el SVG como fallback
+        console.warn('3D quill fallback to SVG:', err);
+      }
+    }
 
     // ── SPLASH ──
     function splashGo() {

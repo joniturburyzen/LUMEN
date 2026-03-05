@@ -1,0 +1,15 @@
+{
+  "name": "lumen_quill",
+  "type": "module",
+  "version": "0.1.0",
+  "files": [
+    "lumen_quill_bg.wasm",
+    "lumen_quill.js",
+    "lumen_quill.d.ts"
+  ],
+  "main": "lumen_quill.js",
+  "types": "lumen_quill.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}
