@@ -12,6 +12,20 @@ export class Quill {
         wasm.__wbg_quill_free(ptr, 0);
     }
     /**
+     * @returns {number}
+     */
+    get tilt_x() {
+        const ret = wasm.__wbg_get_quill_tilt_x(this.__wbg_ptr);
+        return ret;
+    }
+    /**
+     * @returns {number}
+     */
+    get tilt_y() {
+        const ret = wasm.__wbg_get_quill_tilt_y(this.__wbg_ptr);
+        return ret;
+    }
+    /**
      * @param {string} id
      */
     constructor(id) {
@@ -42,6 +56,18 @@ export class Quill {
      */
     tick(dt) {
         wasm.quill_tick(this.__wbg_ptr, dt);
+    }
+    /**
+     * @param {number} arg0
+     */
+    set tilt_x(arg0) {
+        wasm.__wbg_set_quill_tilt_x(this.__wbg_ptr, arg0);
+    }
+    /**
+     * @param {number} arg0
+     */
+    set tilt_y(arg0) {
+        wasm.__wbg_set_quill_tilt_y(this.__wbg_ptr, arg0);
     }
 }
 if (Symbol.dispose) Quill.prototype[Symbol.dispose] = Quill.prototype.free;
@@ -102,9 +128,6 @@ function __wbg_get_imports() {
         __wbg_createVertexArray_420460898dc8d838: function(arg0) {
             const ret = arg0.createVertexArray();
             return isLikeNone(ret) ? 0 : addToExternrefTable0(ret);
-        },
-        __wbg_depthFunc_befeae10cb29920d: function(arg0, arg1) {
-            arg0.depthFunc(arg1 >>> 0);
         },
         __wbg_disable_62ec2189c50a0db7: function(arg0, arg1) {
             arg0.disable(arg1 >>> 0);

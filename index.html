@@ -1585,7 +1585,7 @@
       <div class="bubble-wrap" style="display:inline-block;">
         <div class="bubble" id="sb"></div>
         <div class="pen pen-lg float-anim" id="sp" onclick="penClick('sp','sb')" style="display:inline-block;filter:drop-shadow(0px 18px 35px rgba(14,165,233,0.40));">
-          <canvas id="quill_canvas" width="300" height="400" style="width:210px;height:280px;display:block;"></canvas>
+          <canvas id="quill_canvas" width="220" height="420" style="width:175px;height:335px;display:block;"></canvas>
           <svg viewBox="0 0 512 540" fill="none" id="quill_svg_fallback"
             style="width:220px;height:240px;display:none;overflow:visible;filter:drop-shadow(0px 18px 30px rgba(14,165,233,0.32));">
             <defs>
@@ -2187,7 +2187,7 @@
           const dt = Math.min((now - prev) / 1000, 0.05);
           prev = now;
           quill.tick(dt);
-          quill.render(now / 1000, 300, 400);
+          quill.render(now / 1000, 220, 420);
           requestAnimationFrame(frame);
         })(performance.now());
       } catch(err) {
