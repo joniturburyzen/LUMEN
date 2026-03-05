@@ -1584,9 +1584,10 @@
       <!-- Diagonal glassmorphism feather -->
       <div class="bubble-wrap" style="display:inline-block;">
         <div class="bubble" id="sb"></div>
-        <div class="pen pen-lg float-anim" id="sp" onclick="penClick('sp','sb')" style="display:inline-block;">
-          <svg viewBox="0 0 512 540" fill="none"
-            style="width:220px;height:240px;display:block;overflow:visible;filter:drop-shadow(0px 18px 30px rgba(14,165,233,0.32));">
+        <div class="pen pen-lg float-anim" id="sp" onclick="penClick('sp','sb')" style="display:inline-block;filter:drop-shadow(0px 18px 35px rgba(14,165,233,0.40));">
+          <canvas id="quill_canvas" width="300" height="400" style="width:210px;height:280px;display:block;"></canvas>
+          <svg viewBox="0 0 512 540" fill="none" id="quill_svg_fallback"
+            style="width:220px;height:240px;display:none;overflow:visible;filter:drop-shadow(0px 18px 30px rgba(14,165,233,0.32));">
             <defs>
               <!-- Left vane: pearl → sky → ocean → navy -->
               <linearGradient id="qL" x1="100%" x2="0%" y1="0%" y2="100%">
@@ -1743,6 +1744,7 @@
       </div>
 
       <div class="splash-logo">LUMEN</div>
+
       <div class="splash-sub">text assistant</div>
       <div class="splash-phrase" id="sph">Preparando <span
           class="dots"><span>.</span><span>.</span><span>.</span></span></div>
@@ -2160,57 +2162,39 @@
     });
 
     async function initQuill3D() {
+      const cv = document.getElementById('quill_canvas');
+      if (!cv) return;
+      // Comprobar soporte WebGL2 antes de cargar el WASM
+      if (!cv.getContext('webgl2')) {
+        cv.style.display = 'none';
+        const fb = document.getElementById('quill_svg_fallback');
+        if (fb) fb.style.display = 'block';
+        return;
+      }
       try {
         const { default: init, Quill } = await import('./pkg/lumen_quill.js');
         await init();
-
-        // Canvas WebGL
-        const canvas = document.createElement('canvas');
-        canvas.id = 'quill_canvas';
-        canvas.width = 300;
-        canvas.height = 400;
-        canvas.style.cssText = 'width:220px;height:293px;display:block;margin:0 auto;cursor:pointer;';
-
-        // Reemplazar SVG por canvas (carga progresiva)
-        const svgWrap = document.getElementById('sp');
-        svgWrap.style.display = 'none';
-        svgWrap.parentNode.insertBefore(canvas, svgWrap);
-
-        // Mantener el onclick de penClick en el canvas
-        canvas.addEventListener('click', () => penClick('sp', 'sb'));
-
         const quill = new Quill('quill_canvas');
-        let lastTime = performance.now();
-
-        // Tilt con ratón
         document.addEventListener('mousemove', e => {
-          const cx = window.innerWidth / 2;
-          const cy = window.innerHeight / 2;
-          quill.set_tilt(e.clientX - cx, e.clientY - cy);
+          quill.set_tilt(e.clientX - window.innerWidth/2, e.clientY - window.innerHeight/2);
         });
-
-        // Tilt con dedo
         document.addEventListener('touchmove', e => {
-          if (e.touches.length > 0) {
-            const cx = window.innerWidth / 2;
-            const cy = window.innerHeight / 2;
-            quill.set_tilt(e.touches[0].clientX - cx, e.touches[0].clientY - cy);
-          }
+          if (e.touches.length > 0)
+            quill.set_tilt(e.touches[0].clientX - window.innerWidth/2, e.touches[0].clientY - window.innerHeight/2);
         }, { passive: true });
-
-        // Loop de animación
-        function frame(now) {
-          const dt = Math.min((now - lastTime) / 1000, 0.05);
-          lastTime = now;
+        let prev = performance.now();
+        (function frame(now){
+          const dt = Math.min((now - prev) / 1000, 0.05);
+          prev = now;
           quill.tick(dt);
           quill.render(now / 1000, 300, 400);
           requestAnimationFrame(frame);
-        }
-        requestAnimationFrame(frame);
-
+        })(performance.now());
       } catch(err) {
-        // Sin WebGL2 → queda el SVG como fallback
-        console.warn('3D quill fallback to SVG:', err);
+        console.warn('3D quill error:', err);
+        cv.style.display = 'none';
+        const fb = document.getElementById('quill_svg_fallback');
+        if (fb) fb.style.display = 'block';
       }
     }
 

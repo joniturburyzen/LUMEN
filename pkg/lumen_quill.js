@@ -12,24 +12,10 @@ export class Quill {
         wasm.__wbg_quill_free(ptr, 0);
     }
     /**
-     * @returns {number}
+     * @param {string} id
      */
-    get tilt_x() {
-        const ret = wasm.__wbg_get_quill_tilt_x(this.__wbg_ptr);
-        return ret;
-    }
-    /**
-     * @returns {number}
-     */
-    get tilt_y() {
-        const ret = wasm.__wbg_get_quill_tilt_y(this.__wbg_ptr);
-        return ret;
-    }
-    /**
-     * @param {string} canvas_id
-     */
-    constructor(canvas_id) {
-        const ptr0 = passStringToWasm0(canvas_id, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    constructor(id) {
+        const ptr0 = passStringToWasm0(id, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
         const len0 = WASM_VECTOR_LEN;
         const ret = wasm.quill_new(ptr0, len0);
         this.__wbg_ptr = ret >>> 0;
@@ -56,18 +42,6 @@ export class Quill {
      */
     tick(dt) {
         wasm.quill_tick(this.__wbg_ptr, dt);
-    }
-    /**
-     * @param {number} arg0
-     */
-    set tilt_x(arg0) {
-        wasm.__wbg_set_quill_tilt_x(this.__wbg_ptr, arg0);
-    }
-    /**
-     * @param {number} arg0
-     */
-    set tilt_y(arg0) {
-        wasm.__wbg_set_quill_tilt_y(this.__wbg_ptr, arg0);
     }
 }
 if (Symbol.dispose) Quill.prototype[Symbol.dispose] = Quill.prototype.free;
