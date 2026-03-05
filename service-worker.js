@@ -1,11 +1,12 @@
-const CACHE = 'lumen-v1';
-const BASE = '/lumen-frontend';
+const CACHE = 'lumen-v3';
+const BASE = '/LUMEN';
 const ASSETS = [
   BASE + '/',
   BASE + '/index.html',
   BASE + '/manifest.json',
-  BASE + '/icon-192.png',
-  BASE + '/icon-512.png',
+  BASE + '/icon.svg',
+  BASE + '/pkg/lumen_quill.js',
+  BASE + '/pkg/lumen_quill_bg.wasm',
 ];
 
 self.addEventListener('install', e => {
@@ -26,6 +27,11 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
   if (e.request.url.includes('run.app')) return;
+  // Siempre red primero para el WASM y JS (así se actualizan)
+  if (e.request.url.includes('/pkg/')) {
+    e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+    return;
+  }
   e.respondWith(
     caches.match(e.request).then(cached => cached || fetch(e.request))
   );
