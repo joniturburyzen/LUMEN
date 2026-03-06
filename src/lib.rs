@@ -86,7 +86,7 @@ impl State {
         let size = window.inner_size();
         let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
             backends: wgpu::Backends::all(),
-            dx12_shader_compiler: Default::default(),
+            ..Default::default()
         });
         let surface = unsafe { instance.create_surface(window) }.unwrap();
         let adapter = instance.request_adapter(&wgpu::RequestAdapterOptions {
@@ -207,7 +207,6 @@ impl State {
 }
 
 #[wasm_bindgen]
-#[cfg(target_arch = "wasm32")]
 pub async fn run() {
     use winit::platform::web::WindowBuilderExtWebSys;
     use wasm_bindgen::JsCast;
