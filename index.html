@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
   
 <head>
@@ -50,6 +50,9 @@
       --splash-bg1: #e8f4fb;
       --splash-bg2: #d0e8f5;
       --splash-line: rgba(180, 215, 240, 0.55);
+      /* Variables de Iluminación Dinámica (0.0 a 1.0) */
+      --mx: 0.5;
+      --my: 0.5;
     }
 
     html,
@@ -445,22 +448,24 @@
     #mod {
       padding-bottom: 3rem;
       transition: background-color 0.3s;
+      -webkit-backdrop-filter: blur(15px);
+      backdrop-filter: blur(15px);
     }
 
     #mod[data-mod="simplificar"] {
-      background-color: #f8fafc;
+      background-color: rgba(248, 250, 252, 0.85);
     }
 
     #mod[data-mod="burocracia"] {
-      background-color: #f8fafb;
+      background-color: rgba(248, 250, 251, 0.85);
     }
 
     #mod[data-mod="apuntes"] {
-      background-color: #fdf8f8;
+      background-color: rgba(253, 248, 248, 0.85);
     }
 
     #mod[data-mod="revision"] {
-      background-color: #ede9fe;
+      background-color: rgba(237, 233, 254, 0.85);
     }
 
     .mod-head {
@@ -470,19 +475,20 @@
       padding: 1rem 1rem 0.8rem;
       position: sticky;
       top: 0;
-      background: rgba(238, 247, 253, 0.93);
+      background: rgba(238, 247, 253, 0.80);
+      -webkit-backdrop-filter: blur(10px);
       backdrop-filter: blur(10px);
       border-bottom: 1px solid rgba(186, 230, 253, 0.4);
       z-index: 50;
     }
 
     #mod[data-mod="apuntes"] .mod-head {
-      background: rgba(253, 248, 248, 0.93);
+      background: rgba(253, 248, 248, 0.80);
       border-bottom-color: rgba(252, 165, 165, 0.3);
     }
 
     #mod[data-mod="revision"] .mod-head {
-      background: rgba(237, 233, 254, 0.93);
+      background: rgba(237, 233, 254, 0.80);
       border-bottom-color: rgba(196, 181, 253, 0.3);
     }
 
@@ -1435,18 +1441,35 @@
       flex-direction: column;
       justify-content: space-between;
       align-items: flex-start;
-      background: rgba(255, 255, 255, 0.92);
-      backdrop-filter: blur(8px);
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 10px 10px -5px rgba(0, 0, 0, 0.03);
+      background: rgba(255, 255, 255, 0.70);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+      /* Sombra dinámica que reacciona a la luz (Punto 5) */
+      box-shadow: 
+        calc((0.5 - var(--mx)) * 15px) calc((0.5 - var(--my)) * 15px) 25px -5px rgba(0, 0, 0, 0.08), 
+        0 10px 10px -5px rgba(0, 0, 0, 0.03);
       transition: transform 0.18s, box-shadow 0.18s;
       -webkit-tap-highlight-color: transparent;
-      border: 2px solid transparent;
+      border: 1px solid rgba(255, 255, 255, 0.45);
       text-align: left;
     }
 
     .module-card:hover {
       transform: translateY(-2px);
     }
+
+    /* Brillo especular en las tarjetas (Efecto Cristal) */
+    .module-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 1.1rem;
+      background: radial-gradient(circle at calc(var(--mx) * 100%) calc(var(--my) * 100%), rgba(255,255,255,0.6), transparent 50%);
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+    .module-card:hover::after { opacity: 1; }
 
     .module-card:active {
       transform: scale(0.97);
@@ -1491,6 +1514,22 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      /* Iconografía 3D (Punto 3): Profundidad simulada */
+      position: relative;
+      overflow: hidden;
+      box-shadow: 
+        inset 2px 2px 4px rgba(255,255,255,0.6),
+        inset -2px -2px 4px rgba(0,0,0,0.05),
+        0 4px 8px rgba(0,0,0,0.06);
+    }
+
+    /* Reflejo de luz en el icono */
+    .module-card-icon::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at calc(var(--mx) * 100%) calc(var(--my) * 100%), rgba(255,255,255,0.8), transparent 60%);
+      opacity: 0.7;
     }
 
     .module-card[data-m="simplificar"] .module-card-icon {
@@ -1570,9 +1609,7 @@
 </head>
 
 <body>
-
-  <body>
-  </body>
+  <canvas id="lumen-canvas" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0;"></canvas>
   <canvas id="wc"></canvas>
 
   <!-- ══ SPLASH ══ -->
@@ -2158,6 +2195,17 @@
       startCanvas();
       splashGo();
       fetch(API + '/').catch(() => { });
+      
+      // Rastrear ratón/dedo para la iluminación (Punto 5)
+      const updateLight = (x, y) => {
+        document.documentElement.style.setProperty('--mx', x / window.innerWidth);
+        document.documentElement.style.setProperty('--my', y / window.innerHeight);
+      };
+      document.addEventListener('mousemove', e => updateLight(e.clientX, e.clientY));
+      document.addEventListener('touchmove', e => {
+        if (e.touches[0]) updateLight(e.touches[0].clientX, e.touches[0].clientY);
+      }, { passive: true });
+      
       initQuill3D();
     });
 
@@ -2172,9 +2220,10 @@
         return;
       }
       try {
-        const { default: init, Quill } = await import('./pkg/lumen_quill.js');
+        const { default: init, Quill, run } = await import('./pkg/lumen_quill.js');
         await init();
         const quill = new Quill('quill_canvas');
+        
         document.addEventListener('mousemove', e => {
           quill.set_tilt(e.clientX - window.innerWidth/2, e.clientY - window.innerHeight/2);
         });
@@ -2190,6 +2239,9 @@
           quill.render(now / 1000, 220, 420);
           requestAnimationFrame(frame);
         })(performance.now());
+
+        // Arrancar el fondo de nebulosa (Al final para no bloquear la pluma)
+        run(); 
       } catch(err) {
         console.warn('3D quill error:', err);
         cv.style.display = 'none';
