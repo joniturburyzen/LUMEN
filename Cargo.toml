@@ -1,0 +1,17 @@
+[package]
+name = "lumen_quill"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+wasm-bindgen = "0.2"
+console_error_panic_hook = "0.1"
+wgpu = { version = "0.17", features = ["webgl"] } # Motor gráfico web (con WebGL activado)
+wasm-bindgen-futures = "0.4"
+winit = "0.28" # Manejo de ventana/eventos
+bytemuck = { version = "1.12", features = ["derive"] } # Para enviar datos a la GPU
+instant = { version = "0.1", features = [ "wasm-bindgen" ] } # Para el tiempo
+web-sys = { version = "0.3", features = ["Document", "Window", "Element", "HtmlCanvasElement", "HtmlElement", "Node"] }
