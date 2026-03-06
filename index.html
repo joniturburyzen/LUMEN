@@ -1453,11 +1453,11 @@
       border: 1px solid rgba(255, 255, 255, 0.45);
       text-align: left;
       transform-style: preserve-3d;
-      transform: perspective(1000px) rotateX(calc((var(--my) - 0.5) * -6deg)) rotateY(calc((var(--mx) - 0.5) * 6deg));
+      transform: perspective(1000px) rotateX(calc((var(--my) - 0.5) * -15deg)) rotateY(calc((var(--mx) - 0.5) * 15deg));
     }
 
     .module-card:hover {
-      transform: perspective(1000px) rotateX(calc((var(--my) - 0.5) * -6deg)) rotateY(calc((var(--mx) - 0.5) * 6deg)) translateZ(10px);
+      transform: perspective(1000px) rotateX(calc((var(--my) - 0.5) * -15deg)) rotateY(calc((var(--mx) - 0.5) * 15deg)) translateZ(30px);
       box-shadow: 
         calc((0.5 - var(--mx)) * 30px) calc((0.5 - var(--my)) * 30px) 40px -5px rgba(0, 0, 0, 0.2), 
         0 20px 20px -5px rgba(0, 0, 0, 0.1);
@@ -2247,7 +2247,7 @@
         })(performance.now());
 
         // Arrancar el fondo de nebulosa (Al final para no bloquear la pluma)
-        run(); 
+        if (run) run(); 
       } catch(err) {
         console.warn('3D quill error:', err);
         cv.style.display = 'none';
