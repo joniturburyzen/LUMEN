@@ -15,3 +15,4 @@ winit = "0.28" # Manejo de ventana/eventos
 bytemuck = { version = "1.12", features = ["derive"] } # Para enviar datos a la GPU
 instant = { version = "0.1", features = [ "wasm-bindgen" ] } # Para el tiempo
 web-sys = { version = "0.3", features = ["Document", "Window", "Element", "HtmlCanvasElement", "HtmlElement", "Node"] }
+getrandom = { version = "0.2", features = ["js"] }
