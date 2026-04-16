@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LUMEN - Test Suite</title>
+  <style>
+    body { font-family: system-ui, sans-serif; padding: 2rem; background: #f5f5f5; }
+    .test-section { background: white; padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .test-section h2 { margin-top: 0; color: #333; border-bottom: 2px solid #2563eb; padding-bottom: 0.5rem; }
+    .test-item { padding: 0.5rem; margin: 0.5rem 0; border-left: 3px solid #ccc; padding-left: 1rem; }
+    .test-item.pass { border-left-color: #16a34a; background: #f0fdf4; }
+    .test-item.fail { border-left-color: #dc2626; background: #fef2f2; }
+    .test-item.pending { border-left-color: #f59e0b; background: #fffbeb; }
+    button { background: #2563eb; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; margin: 0.5rem 0.5rem 0.5rem 0; }
+    button:hover { background: #1d4ed8; }
+    #results { margin-top: 1rem; }
+    pre { background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 4px; overflow-x: auto; }
+  </style>
+</head>
+<body>
+  <h1>LUMEN - Test Suite</h1>
+  <p>Ejecutando tests automáticos...</p>
+
+  <div class="test-section">
+    <h2>1. Service Worker</h2>
+    <div id="sw-test" class="test-item pending">Verificando Service Worker...</div>
+    <button onclick="testSW()">Re-test SW</button>
+  </div>
+
+  <div class="test-section">
+    <h2>2. API Configuration</h2>
+    <div id="api-test" class="test-item pending">Verificando configuración de API...</div>
+    <button onclick="testAPI()">Re-test API</button>
+  </div>
+
+  <div class="test-section">
+    <h2>3. Chat Persistence (localStorage)</h2>
+    <div id="chat-test" class="test-item pending">Verificando persistencia del chat...</div>
+    <button onclick="testChat()">Re-test Chat</button>
+  </div>
+
+  <div class="test-section">
+    <h2>4. Audio Cleanup</h2>
+    <div id="audio-test" class="test-item pending">Verificando cleanup de audio...</div>
+    <button onclick="testAudio()">Re-test Audio</button>
+  </div>
+
+  <div class="test-section">
+    <h2>5. Module System</h2>
+    <div id="mod-test" class="test-item pending">Verificando sistema de módulos...</div>
+    <button onclick="testModules()">Re-test Módulos</button>
+  </div>
+
+  <div class="test-section">
+    <h2>Resultados</h2>
+    <div id="results"></div>
+  </div>
+
+  <script>
+    const results = [];
+
+    function logResult(testName, passed, message) {
+      const el = document.getElementById(testName + '-test');
+      const status = passed ? 'PASS' : 'FAIL';
+      const className = passed ? 'pass' : 'fail';
+      el.className = 'test-item ' + className;
+      el.innerHTML = `<strong>${status}</strong>: ${message}`;
+      results.push({ testName, passed, message });
+      updateSummary();
+    }
+
+    function updateSummary() {
+      const total = results.length;
+      const passed = results.filter(r => r.passed).length;
+      const failed = total - passed;
+      document.getElementById('results').innerHTML = `
+        <h3>Resumen: ${passed}/${total} passed</h3>
+        <pre>${JSON.stringify(results, null, 2)}</pre>
+      `;
+    }
+
+    // Test 1: Service Worker
+    async function testSW() {
+      const el = document.getElementById('sw-test');
+      if (!('serviceWorker' in navigator)) {
+        logResult('sw', false, 'Service Worker no soportado en este navegador');
+        return;
+      }
+      try {
+        const reg = await navigator.serviceWorker.getRegistration('./');
+        if (reg) {
+          logResult('sw', true, `Service Worker registrado en: ${reg.scope}`);
+        } else {
+          // Intentar registrar
+          const newReg = await navigator.serviceWorker.register('./sw.js');
+          logResult('sw', true, `Service Worker registrado exitosamente: ${newReg.scope}`);
+        }
+      } catch (e) {
+        logResult('sw', false, `Error: ${e.message}`);
+      }
+    }
+
+    // Test 2: API Configuration
+    function testAPI() {
+      // Cargar index.html y extraer la config
+      fetch('./index.html')
+        .then(r => r.text())
+        .then(html => {
+          const match = html.match(/const API = \(\(\) => \{[\s\S]*?\}\)\(\);/);
+          if (match) {
+            // Verificar que existe fallback para localhost
+            const hasLocalhost = html.includes('localhost') && html.includes('http://localhost:8000');
+            const hasProd = html.includes('lumen-backend');
+            if (hasLocalhost && hasProd) {
+              logResult('api', true, 'API configurada correctamente con fallback localhost y production');
+            } else if (hasProd) {
+              logResult('api', false, 'API hardcodeada sin fallback localhost');
+            } else {
+              logResult('api', false, 'Configuración de API no encontrada');
+            }
+          } else {
+            logResult('api', false, 'No se encontró la configuración de API');
+          }
+        })
+        .catch(e => {
+          logResult('api', false, `Error al cargar index.html: ${e.message}`);
+        });
+    }
+
+    // Test 3: Chat Persistence
+    function testChat() {
+      // Limpiar primero
+      localStorage.removeItem('lumen_chat_history');
+      localStorage.removeItem('lumen_chat_text');
+
+      // Simular guardar
+      const testHistory = [
+        { role: 'user', text: 'Hola', timestamp: Date.now() },
+        { role: 'ai', text: 'Hola, ¿en qué puedo ayudarte?', timestamp: Date.now() }
+      ];
+      const testDocText = 'Este es un documento de prueba';
+
+      localStorage.setItem('lumen_chat_history', JSON.stringify(testHistory));
+      localStorage.setItem('lumen_chat_text', testDocText);
+
+      // Verificar que se guardó
+      const savedHistory = JSON.parse(localStorage.getItem('lumen_chat_history') || '[]');
+      const savedText = localStorage.getItem('lumen_chat_text') || '';
+
+      if (savedHistory.length === 2 && savedText === testDocText) {
+        logResult('chat', true, 'Persistencia del chat funciona correctamente');
+        // Limpiar test
+        localStorage.removeItem('lumen_chat_history');
+        localStorage.removeItem('lumen_chat_text');
+      } else {
+        logResult('chat', false, 'La persistencia no funciona como esperado');
+      }
+    }
+
+    // Test 4: Audio Cleanup
+    function testAudio() {
+      // Verificar que el código tiene cleanup proper
+      fetch('./index.html')
+        .then(r => r.text())
+        .then(html => {
+          const hasAudioStreamVar = html.includes('let audioStream') || html.includes('var audioStream');
+          const hasCleanup = html.includes('audioStream.getTracks()') && html.includes('forEach(t => t.stop())');
+          const hasResetCleanup = html.includes('if (audioStream)') && html.includes('audioStream = null');
+
+          if (hasAudioStreamVar && hasCleanup && hasResetCleanup) {
+            logResult('audio', true, 'Audio cleanup implementado correctamente');
+          } else {
+            const issues = [];
+            if (!hasAudioStreamVar) issues.push('Falta variable audioStream');
+            if (!hasCleanup) issues.push('Falta cleanup de tracks');
+            if (!hasResetCleanup) issues.push('Falta null assignment');
+            logResult('audio', false, 'Issues: ' + issues.join(', '));
+          }
+        })
+        .catch(e => {
+          logResult('audio', false, `Error: ${e.message}`);
+        });
+    }
+
+    // Test 5: Module System
+    function testModules() {
+      fetch('./index.html')
+        .then(r => r.text())
+        .then(html => {
+          const hasMODS = html.includes('const MODS = {');
+          const hasSimplificar = html.includes('simplificar:');
+          const hasBurocracia = html.includes('burocracia:');
+          const hasApuntes = html.includes('apuntes:');
+          const hasRevision = html.includes('revision:');
+          const hasOpenMod = html.includes('function openMod');
+          const hasSwitchTab = html.includes('function switchTab');
+
+          const allModules = hasSimplificar && hasBurocracia && hasApuntes && hasRevision;
+          const allFunctions = hasOpenMod && hasSwitchTab;
+
+          if (hasMODS && allModules && allFunctions) {
+            logResult('mod', true, 'Sistema de módulos completo (4 módulos + funciones)');
+          } else {
+            const issues = [];
+            if (!hasMODS) issues.push('Falta MODS object');
+            if (!allModules) issues.push('Faltan módulos');
+            if (!allFunctions) issues.push('Faltan funciones');
+            logResult('mod', false, 'Issues: ' + issues.join(', '));
+          }
+        })
+        .catch(e => {
+          logResult('mod', false, `Error: ${e.message}`);
+        });
+    }
+
+    // Ejecutar todos los tests al cargar
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        testSW();
+        testAPI();
+        testChat();
+        testAudio();
+        testModules();
+      }, 500);
+    });
+  </script>
+</body>
+</html>

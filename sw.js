@@ -1,16 +1,21 @@
 // ─── SERVICE WORKER: ACTUALIZACIÓN GARANTIZADA ───────────────────────────────
-// v20 — Siempre carga la última versión, incluso en iOS
+// v22 — Rutas absolutas para funcionar en subdirectorios + mejor error handling
 // ─────────────────────────────────────────────────────────────────────────────
 
-const CACHE = "lumen-v21";
+const CACHE = "lumen-v22";
 
-// Archivos mínimos para funcionar offline
+// Obtener la ruta base dinámicamente (funciona en root y subdirectorios)
+const BASE_PATH = location.pathname.substring(0, location.pathname.lastIndexOf('/')) || '';
+
+// Archivos mínimos para funcionar offline (rutas absolutas desde la raíz del scope)
 const PRECACHE = [
-  "./",
-  "./index.html",
-  "./manifest.json",
-  "./icon-192.png",
-  "./icon-512.png",
+  location.pathname,           // URL actual (normalmente index.html)
+  BASE_PATH + '/index.html',
+  BASE_PATH + '/manifest.json',
+  BASE_PATH + '/icon-192.png',
+  BASE_PATH + '/icon-512.png',
+  BASE_PATH + '/pkg/lumen_quill.js',
+  BASE_PATH + '/pkg/lumen_quill_bg.wasm',
 ];
 
 // ── INSTALL ───────────────────────────────────────────────────────────────────
@@ -44,10 +49,12 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
       fetch(req)
         .then((res) => {
-          caches.open(CACHE).then((c) => c.put(req, res.clone()));
+          if (res && res.status === 200) {
+            caches.open(CACHE).then((c) => c.put(req, res.clone()));
+          }
           return res;
         })
-        .catch(() => caches.match("./index.html"))
+        .catch(() => caches.match(BASE_PATH + '/index.html'))
     );
     return;
   }
@@ -57,7 +64,9 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
       fetch(req)
         .then((res) => {
-          caches.open(CACHE).then((c) => c.put(req, res.clone()));
+          if (res && res.status === 200) {
+            caches.open(CACHE).then((c) => c.put(req, res.clone()));
+          }
           return res;
         })
         .catch(() => caches.match(req))
@@ -75,6 +84,6 @@ self.addEventListener("fetch", (event) => {
         caches.open(CACHE).then((c) => c.put(req, res.clone()));
         return res;
       });
-    })
+    }).catch(() => null)
   );
 });

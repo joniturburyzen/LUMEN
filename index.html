@@ -2401,7 +2401,18 @@
 
   <!-- ══ SCRIPT ══ -->
   <script>
-    const API = 'https://lumen-backend-674628598121.europe-west1.run.app';
+    // API URL configurable: intenta detectar automáticamente según el entorno
+    const API = (() => {
+      // 1) Si hay variable en window (inyectada por build/deploy)
+      if (window.LUMEN_API_URL) return window.LUMEN_API_URL;
+      // 2) Si estamos en localhost/dev
+      const host = window.location.hostname;
+      if (host === 'localhost' || host === '127.0.0.1') {
+        return 'http://localhost:8000'; // fallback local
+      }
+      // 3) Default: backend en production
+      return 'https://lumen-backend-674628598121.europe-west1.run.app';
+    })();
 
     const MODS = {
       simplificar: {
@@ -2447,19 +2458,30 @@
     let simpResult = null;
     let ctxSel = 'Trabajo';
 
+    // ── CHAT PERSISTENTE ──
+    let chatDocText = localStorage.getItem('lumen_chat_text') || '';
+    let chatHistory = JSON.parse(localStorage.getItem('lumen_chat_history') || '[]');
+
     // ── INIT ──
     // ── SERVICE WORKER ──
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js').then(reg => {
+          console.log('[SW] Registrado:', reg.scope);
           // Cuando llega una versión nueva del SW, recargar para cargar el código actualizado
           reg.addEventListener('updatefound', () => {
             const next = reg.installing;
+            console.log('[SW] Nueva versión disponible');
             next.addEventListener('statechange', () => {
-              if (next.state === 'activated') window.location.reload();
+              if (next.state === 'activated') {
+                console.log('[SW] Nueva versión activada, recargando...');
+                window.location.reload();
+              }
             });
           });
-        }).catch(() => {});
+        }).catch(err => {
+          console.error('[SW] Error al registrar:', err);
+        });
       });
     }
 
@@ -2795,10 +2817,13 @@
     }
 
     // ── AUDIO ──
+    let audioStream = null; // Guardar referencia para cleanup
+
     async function toggleRec() {
       if (!isRec) {
         try {
           const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          audioStream = stream; // Guardar referencia
           mr = new MediaRecorder(stream);
           recChunks = [];
           mr.ondataavailable = e => recChunks.push(e.data);
@@ -2807,7 +2832,11 @@
             const url = URL.createObjectURL(audBlob);
             document.getElementById('apl').src = url;
             document.getElementById('ap').style.display = 'block';
-            stream.getTracks().forEach(t => t.stop());
+            // Cleanup proper de tracks
+            if (audioStream) {
+              audioStream.getTracks().forEach(t => t.stop());
+              audioStream = null;
+            }
           };
           mr.start(); isRec = true; recSec = 0;
           document.getElementById('rb').classList.add('on');
@@ -2819,7 +2848,10 @@
             const m = Math.floor(recSec / 60), s = recSec % 60;
             document.getElementById('rt').textContent = `${m}:${s.toString().padStart(2, '0')}`;
           }, 1000);
-        } catch (e) { showErr('No se pudo acceder al micrófono.'); }
+        } catch (e) {
+          console.error('Audio recording error:', e);
+          showErr('No se pudo acceder al micrófono. Verifica los permisos.');
+        }
       } else {
         mr.stop(); isRec = false; clearInterval(recInt);
         document.getElementById('rb').classList.remove('on');
@@ -2919,7 +2951,11 @@
           ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(jsonBody) }
           : { method: 'POST', body: fd };
 
-        if (isJson && jsonBody.text) chatDocText = jsonBody.text;
+        if (isJson && jsonBody.text) {
+          chatDocText = jsonBody.text;
+          chatHistory = []; // Limpiar historial anterior cuando hay nuevo documento
+          saveChatHistory();
+        }
 
         const r = await fetch(API + c.endpoint, fetchOpts);
         clearInterval(pit);
@@ -3053,8 +3089,17 @@
     }
     function resetMod() {
       scanF = null; docF = null; audBlob = null; audFile = null;
-      if (isRec) { try { mr.stop(); } catch (e) { } isRec = false; }
-      clearInterval(recInt); simpResult = null;
+      if (isRec) {
+        try { mr.stop(); } catch (e) { }
+        isRec = false;
+      }
+      // Cleanup de audio stream si existe
+      if (audioStream) {
+        audioStream.getTracks().forEach(t => t.stop());
+        audioStream = null;
+      }
+      clearInterval(recInt);
+      simpResult = null;
     }
 
     // ── PEN CLICK ──
@@ -3069,9 +3114,26 @@
       if (navigator.vibrate) navigator.vibrate(25);
     }
 
-    // ── DOC CHAT ──
-    let chatDocText = '';
+    // ── DOC CHAT PERSISTENTE ──
     let chatBusy = false;
+
+    // Restaurar historial del chat
+    function restoreChatHistory() {
+      const msgsContainer = document.getElementById('chat-msgs');
+      const empty = document.getElementById('chat-empty-msg');
+      if (!msgsContainer || !empty) return;
+
+      if (chatHistory.length > 0) {
+        empty.style.display = 'none';
+        chatHistory.forEach(msg => {
+          const div = document.createElement('div');
+          div.className = 'chat-msg ' + msg.role;
+          div.textContent = msg.text;
+          msgsContainer.appendChild(div);
+        });
+        msgsContainer.scrollTop = msgsContainer.scrollHeight;
+      }
+    }
 
     function openDocChat() {
       const pen = document.getElementById('mp');
@@ -3081,6 +3143,7 @@
       if (navigator.vibrate) navigator.vibrate(25);
       document.getElementById('chat-panel').classList.add('open');
       document.querySelector('.chat-backdrop').classList.add('open');
+      restoreChatHistory();
       setTimeout(() => {
         if (chatDocText) document.getElementById('chat-inp').focus();
       }, 380);
@@ -3092,10 +3155,27 @@
     }
 
     function chatReady() {
-      // Called after a document is processed — update the empty state hint
-      chatDocText = chatDocText; // already set in submit
       const empty = document.getElementById('chat-empty-msg');
       if (empty) empty.textContent = '¡Documento listo! Pregúntame lo que quieras sobre él.';
+    }
+
+    function saveChatHistory() {
+      localStorage.setItem('lumen_chat_history', JSON.stringify(chatHistory));
+      localStorage.setItem('lumen_chat_text', chatDocText || '');
+    }
+
+    function clearChatHistory() {
+      chatHistory = [];
+      chatDocText = '';
+      localStorage.removeItem('lumen_chat_history');
+      localStorage.removeItem('lumen_chat_text');
+      const msgsContainer = document.getElementById('chat-msgs');
+      const empty = document.getElementById('chat-empty-msg');
+      if (msgsContainer) msgsContainer.innerHTML = '';
+      if (empty) {
+        empty.style.display = 'block';
+        empty.textContent = 'Procesa un documento primero para poder hacer preguntas sobre él.';
+      }
     }
 
     async function sendChat() {
@@ -3112,6 +3192,7 @@
 
       inp.value = '';
       addChatMsg('user', q);
+      saveChatHistory();
 
       const thinkId = 'ct-' + Date.now();
       addChatMsg('ai', 'Pensando…', thinkId, true);
@@ -3128,8 +3209,19 @@
         const data = await r.json();
         const answer = data.answer || data.respuesta || data.result || data.text || JSON.stringify(data);
         const el = document.getElementById(thinkId);
-        if (el) { el.textContent = answer; el.classList.remove('thinking'); }
+        if (el) {
+          el.textContent = answer;
+          el.classList.remove('thinking');
+          // Actualizar el mensaje en el historial
+          const lastAiMsg = chatHistory.find(m => m.role === 'ai' && m.thinking);
+          if (lastAiMsg) {
+            lastAiMsg.text = answer;
+            lastAiMsg.thinking = false;
+          }
+          saveChatHistory();
+        }
       } catch (e) {
+        console.error('Chat error:', e);
         const el = document.getElementById(thinkId);
         if (el) { el.textContent = 'No se pudo conectar con el servidor. Inténtalo de nuevo.'; el.classList.remove('thinking'); }
       }
@@ -3148,6 +3240,10 @@
       div.textContent = text;
       msgs.appendChild(div);
       msgs.scrollTop = msgs.scrollHeight;
+
+      // Guardar en historial
+      chatHistory.push({ role, text, thinking: !!thinking, timestamp: Date.now() });
+      saveChatHistory();
     }
 
     // ── WORD CANVAS ──
@@ -3203,6 +3299,7 @@
       <div class="chat-hdr">
         <span class="chat-hdr-icon">✦</span>
         <div class="chat-hdr-title">Pregunta al documento</div>
+        <button class="chat-close-btn" onclick="clearChatHistory()" title="Limpiar historial" style="margin-right:8px;font-size:0.9rem">🗑️</button>
         <button class="chat-close-btn" onclick="closeChat()">✕</button>
       </div>
       <div class="chat-msgs" id="chat-msgs">
